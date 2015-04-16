@@ -39,6 +39,9 @@ import org.mifosplatform.portfolio.accountdetails.data.AccountSummaryCollectionD
 import org.mifosplatform.portfolio.accountdetails.service.AccountDetailsReadPlatformService;
 import org.mifosplatform.portfolio.client.data.ClientData;
 import org.mifosplatform.portfolio.client.service.ClientReadPlatformService;
+import org.mifosplatform.portfolio.group.api.GroupingTypesApiConstants;
+import org.mifosplatform.portfolio.group.data.GroupGeneralData;
+import org.mifosplatform.portfolio.group.service.CenterReadPlatformService;
 import org.mifosplatform.infrastructure.core.service.SearchParameters;
 import org.mifosplatform.portfolio.savings.data.SavingsAccountData;
 import org.mifosplatform.portfolio.savings.service.SavingsAccountReadPlatformService;
@@ -52,6 +55,7 @@ import org.springframework.stereotype.Component;
 public class ClientsApiResource {
 
     private final PlatformSecurityContext context;
+    final CenterReadPlatformService centerReadPlatformService;
     private final ClientReadPlatformService clientReadPlatformService;
     private final ToApiJsonSerializer<ClientData> toApiJsonSerializer;
     private final ToApiJsonSerializer<AccountSummaryCollectionData> clientAccountSummaryToApiJsonSerializer;
@@ -59,23 +63,30 @@ public class ClientsApiResource {
     private final PortfolioCommandSourceWritePlatformService commandsSourceWritePlatformService;
     private final AccountDetailsReadPlatformService accountDetailsReadPlatformService;
     private final SavingsAccountReadPlatformService savingsAccountReadPlatformService;
+    private final ToApiJsonSerializer<GroupGeneralData> groupGeneralApiJsonSerializer;
+
+  
 
     @Autowired
-    public ClientsApiResource(final PlatformSecurityContext context, final ClientReadPlatformService readPlatformService,
-            final ToApiJsonSerializer<ClientData> toApiJsonSerializer,
-            final ToApiJsonSerializer<AccountSummaryCollectionData> clientAccountSummaryToApiJsonSerializer,
-            final ApiRequestParameterHelper apiRequestParameterHelper,
-            final PortfolioCommandSourceWritePlatformService commandsSourceWritePlatformService,
-            final AccountDetailsReadPlatformService accountDetailsReadPlatformService,
-            final SavingsAccountReadPlatformService savingsAccountReadPlatformService) {
+    public ClientsApiResource(PlatformSecurityContext context, CenterReadPlatformService centerReadPlatformService,
+            ClientReadPlatformService clientReadPlatformService, ToApiJsonSerializer<ClientData> toApiJsonSerializer,
+            ToApiJsonSerializer<AccountSummaryCollectionData> clientAccountSummaryToApiJsonSerializer,
+            ApiRequestParameterHelper apiRequestParameterHelper,
+            PortfolioCommandSourceWritePlatformService commandsSourceWritePlatformService,
+            AccountDetailsReadPlatformService accountDetailsReadPlatformService,
+            SavingsAccountReadPlatformService savingsAccountReadPlatformService,
+            ToApiJsonSerializer<GroupGeneralData> groupGeneralApiJsonSerializer) {
+        super();
         this.context = context;
-        this.clientReadPlatformService = readPlatformService;
+        this.centerReadPlatformService = centerReadPlatformService;
+        this.clientReadPlatformService = clientReadPlatformService;
         this.toApiJsonSerializer = toApiJsonSerializer;
         this.clientAccountSummaryToApiJsonSerializer = clientAccountSummaryToApiJsonSerializer;
         this.apiRequestParameterHelper = apiRequestParameterHelper;
         this.commandsSourceWritePlatformService = commandsSourceWritePlatformService;
         this.accountDetailsReadPlatformService = accountDetailsReadPlatformService;
         this.savingsAccountReadPlatformService = savingsAccountReadPlatformService;
+        this.groupGeneralApiJsonSerializer = groupGeneralApiJsonSerializer;
     }
 
     @GET
@@ -83,6 +94,7 @@ public class ClientsApiResource {
     @Consumes({ MediaType.APPLICATION_JSON })
     @Produces({ MediaType.APPLICATION_JSON })
     public String retrieveTemplate(@Context final UriInfo uriInfo, @QueryParam("officeId") final Long officeId,
+            @QueryParam("centerId") final Long centerId,
             @QueryParam("commandParam") final String commandParam,
             @DefaultValue("false") @QueryParam("staffInSelectedOfficeOnly") final boolean staffInSelectedOfficeOnly) {
 
@@ -100,6 +112,13 @@ public class ClientsApiResource {
             clientData = this.clientReadPlatformService.retrieveAllNarrations(ClientApiConstants.CLIENT_WITHDRAW_REASON);
         } else {
             clientData = this.clientReadPlatformService.retrieveTemplate(officeId, staffInSelectedOfficeOnly);
+        }
+        
+        if (centerId != null) {
+            final GroupGeneralData centerGroupTemplate = this.centerReadPlatformService.retrieveCenterGroupTemplate(centerId);
+            final ApiRequestJsonSerializationSettings settings = this.apiRequestParameterHelper.process(uriInfo.getQueryParameters());
+            return this.groupGeneralApiJsonSerializer.serialize(settings, centerGroupTemplate,
+                    GroupingTypesApiConstants.CENTER_GROUP_RESPONSE_DATA_PARAMETERS);
         }
 
         final ApiRequestJsonSerializationSettings settings = this.apiRequestParameterHelper.process(uriInfo.getQueryParameters());

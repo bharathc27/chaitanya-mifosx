@@ -140,10 +140,11 @@ public class SearchReadPlatformServiceImpl implements SearchReadPlatformService 
                 sql.append(clientIdentifierExactMatchSql).append(union);
             }
 
-            if (searchConditions.isGroupSearch()) {
+   
+          if (searchConditions.isGroupSearch()) {
                 sql.append(groupExactMatchSql).append(union);
             }
-
+   
             // include all matching records
             if (searchConditions.isClientSearch()) {
                 sql.append(clientMatchSql).append(union);
