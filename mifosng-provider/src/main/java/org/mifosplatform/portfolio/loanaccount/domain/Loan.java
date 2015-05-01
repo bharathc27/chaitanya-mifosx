@@ -2508,7 +2508,7 @@ public class Loan extends AbstractPersistable<Long> {
             for (final LoanCharge charge : charges()) {
                 Date actualDisbursementDate = getActualDisbursementDate(charge);
                 if(chargeDefinition.getChargeTime() == ChargeTimeType.TRANCHE_DISBURSEMENT.getValue()) {
-                    if(disbursedOn.equals(new LocalDate(actualDisbursementDate))){
+                    if(disbursedOn.equals(new LocalDate(actualDisbursementDate)) && actualDisbursementDate != null){
                         if (charge.isDueAtDisbursement()) {
                             if (totalFeeChargesDueAtDisbursement.isGreaterThanZero()
                                     && !charge.getChargePaymentMode().isPaymentModeAccountTransfer()) {
