@@ -95,7 +95,7 @@ public class LoanReschedulePreviewPlatformServiceImpl implements LoanRescheduleP
 
         LoanRescheduleModel loanRescheduleModel = new DefaultLoanReschedulerFactory().reschedule(mathContext, interestMethod,
                 loanRescheduleRequest, applicationCurrency, holidayDetailDTO, restCalendarInstance, compoundingCalendarInstance,
-                loan.loanRescheduleRequests());
+                loan.loanRescheduleRequests(), null);
         LoanRescheduleModel loanRescheduleModelWithOldPeriods = LoanRescheduleModel.createWithSchedulehistory(loanRescheduleModel,
                 oldPeriods);
         return loanRescheduleModelWithOldPeriods;

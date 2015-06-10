@@ -140,7 +140,7 @@ public class CalendarWritePlatformServiceJpaRepositoryImpl implements CalendarWr
 
         this.calendarRepository.save(newCalendar);
 
-        final CalendarInstance newCalendarInstance = CalendarInstance.from(newCalendar, entityId, entityTypeId);
+        final CalendarInstance newCalendarInstance = CalendarInstance.from(newCalendar, entityId, entityTypeId, null);
         this.calendarInstanceRepository.save(newCalendarInstance);
 
         return new CommandProcessingResultBuilder() //
@@ -247,12 +247,12 @@ public class CalendarWritePlatformServiceJpaRepositoryImpl implements CalendarWr
                 // calendar.
                 final Collection<CalendarInstance> loanCalendarInstances = this.calendarInstanceRepository.findByCalendarIdAndEntityTypeId(
                         calendarId, CalendarEntityType.LOANS.getValue());
-
+               
                 if (!CollectionUtils.isEmpty(loanCalendarInstances)) {
                     // update all loans associated with modifying calendar
-                    this.loanWritePlatformService.applyMeetingDateChanges(calendarForUpdate, loanCalendarInstances,
+                this.loanWritePlatformService.applyMeetingDateChanges(calendarForUpdate, loanCalendarInstances,
                             reschedulebasedOnMeetingDates, presentMeetingDate, newMeetingDate);
-
+  
                 }
             }
         }
@@ -282,7 +282,7 @@ public class CalendarWritePlatformServiceJpaRepositoryImpl implements CalendarWr
         final Calendar calendarForUpdate = this.calendarRepository.findOne(calendarId);
         if (calendarForUpdate == null) { throw new CalendarNotFoundException(calendarId); }
 
-        final CalendarInstance newCalendarInstance = new CalendarInstance(calendarForUpdate, entityId, entityTypeId);
+        final CalendarInstance newCalendarInstance = new CalendarInstance(calendarForUpdate, entityId, entityTypeId, calendarForUpdate.getStartDate());
         this.calendarInstanceRepository.save(newCalendarInstance);
 
         return new CommandProcessingResultBuilder() //

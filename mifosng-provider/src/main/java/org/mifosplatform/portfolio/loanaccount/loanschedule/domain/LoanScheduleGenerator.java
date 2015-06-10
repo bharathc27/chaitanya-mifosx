@@ -6,6 +6,7 @@
 package org.mifosplatform.portfolio.loanaccount.loanschedule.domain;
 
 import java.math.MathContext;
+import java.util.Date;
 import java.util.List;
 import java.util.Set;
 
@@ -38,5 +39,5 @@ public interface LoanScheduleGenerator {
 
     LoanRescheduleModel reschedule(final MathContext mathContext, final LoanRescheduleRequest loanRescheduleRequest,
             final ApplicationCurrency applicationCurrency, final HolidayDetailDTO holidayDetailDTO, CalendarInstance restCalendarInstance, CalendarInstance compoundingCalendarInstance,
-            List<LoanRescheduleRequest> loanRescheduleRequests);
+            List<LoanRescheduleRequest> loanRescheduleRequests,  final Date rescheduledDate);
 }

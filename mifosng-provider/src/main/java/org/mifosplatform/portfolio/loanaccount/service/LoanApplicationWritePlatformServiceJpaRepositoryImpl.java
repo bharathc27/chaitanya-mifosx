@@ -272,7 +272,7 @@ public class LoanApplicationWritePlatformServiceJpaRepositoryImpl implements Loa
                 if (calendar == null) { throw new CalendarNotFoundException(calendarId); }
 
                 final CalendarInstance calendarInstance = new CalendarInstance(calendar, newLoanApplication.getId(),
-                        CalendarEntityType.LOANS.getValue());
+                        CalendarEntityType.LOANS.getValue(),calendar.getStartDate());
                 this.calendarInstanceRepository.save(calendarInstance);
             }
 
@@ -402,7 +402,7 @@ public class LoanApplicationWritePlatformServiceJpaRepositoryImpl implements Loa
         final Calendar calendar = Calendar.createRepeatingCalendar(title, calendarStartDate, CalendarType.COLLECTION.getValue(),
                 calendarFrequencyType, frequency, repeatsOnDay);
         final CalendarInstance calendarInstance = CalendarInstance.from(calendar, loan.loanInterestRecalculationDetails().getId(),
-                calendarEntityType.getValue());
+                calendarEntityType.getValue(), calendar.getStartDate());
         this.calendarInstanceRepository.save(calendarInstance);
     }
 
@@ -675,7 +675,7 @@ public class LoanApplicationWritePlatformServiceJpaRepositoryImpl implements Loa
                 } else {
                     // attaching new calendar
                     final CalendarInstance calendarInstance = new CalendarInstance(calendar, existingLoanApplication.getId(),
-                            CalendarEntityType.LOANS.getValue());
+                            CalendarEntityType.LOANS.getValue(), calendar.getStartDate());
                     this.calendarInstanceRepository.save(calendarInstance);
                 }
 

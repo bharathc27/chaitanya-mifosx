@@ -10,6 +10,7 @@ import java.math.MathContext;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -1236,13 +1237,13 @@ public abstract class AbstractLoanScheduleGenerator implements LoanScheduleGener
     public LoanRescheduleModel reschedule(final MathContext mathContext, final LoanRescheduleRequest loanRescheduleRequest,
             final ApplicationCurrency applicationCurrency, final HolidayDetailDTO holidayDetailDTO,
             final CalendarInstance restCalendarInstance, final CalendarInstance compoundingCalendarInstance,
-            List<LoanRescheduleRequest> loanRescheduleRequests) {
+            List<LoanRescheduleRequest> loanRescheduleRequests, final Date rescheduledDate) {
 
         final Loan loan = loanRescheduleRequest.getLoan();
         final LoanSummary loanSummary = loan.getSummary();
         final LoanProductMinimumRepaymentScheduleRelatedDetail loanProductRelatedDetail = loan.getLoanRepaymentScheduleDetail();
         final MonetaryCurrency currency = loanProductRelatedDetail.getCurrency();
-
+        
         // create an archive of the current loan schedule installments
         Collection<LoanRepaymentScheduleHistory> loanRepaymentScheduleHistoryList = null;
 
@@ -1382,6 +1383,12 @@ public abstract class AbstractLoanScheduleGenerator implements LoanScheduleGener
 
             // update the number of repayments
             loanApplicationTerms.updateNumberOfRepayments(numberOfRepayments);
+            
+            //update reschedule start date from calendar instance (speccific for chaitanya)
+            if(rescheduledDate != null){
+            	final LocalDate rescheduleDate = new LocalDate(rescheduledDate);
+            	loanApplicationTerms.updateRescheduledDate(rescheduleDate);
+            }
 
             LocalDate loanEndDate = this.scheduledDateGenerator.getLastRepaymentDate(loanApplicationTerms, holidayDetailDTO,
             		loanRescheduleRequests);

@@ -33,6 +33,7 @@ import org.mifosplatform.portfolio.calendar.domain.Calendar;
 import org.mifosplatform.portfolio.calendar.domain.CalendarEntityType;
 import org.mifosplatform.portfolio.calendar.domain.CalendarFrequencyType;
 import org.mifosplatform.portfolio.calendar.domain.CalendarInstance;
+import org.mifosplatform.portfolio.calendar.domain.CalendarInstanceRepository;
 import org.mifosplatform.portfolio.calendar.domain.CalendarRepository;
 import org.mifosplatform.portfolio.calendar.domain.CalendarType;
 import org.mifosplatform.portfolio.calendar.exception.CalendarNotFoundException;
@@ -99,6 +100,7 @@ public class LoanScheduleAssembler {
     private final ClientRepositoryWrapper clientRepository;
     private final GroupRepositoryWrapper groupRepository;
     private final WorkingDaysRepositoryWrapper workingDaysRepository;
+    private final CalendarInstanceRepository calendarInstanceRepository;
 
     @Autowired
     public LoanScheduleAssembler(final FromJsonHelper fromApiJsonHelper, final LoanProductRepository loanProductRepository,
@@ -107,7 +109,7 @@ public class LoanScheduleAssembler {
             final LoanChargeAssembler loanChargeAssembler, final CalendarRepository calendarRepository,
             final HolidayRepository holidayRepository, final ConfigurationDomainService configurationDomainService,
             final ClientRepositoryWrapper clientRepository, final GroupRepositoryWrapper groupRepository,
-            final WorkingDaysRepositoryWrapper workingDaysRepository) {
+            final WorkingDaysRepositoryWrapper workingDaysRepository, final CalendarInstanceRepository calendarInstanceRepository) {
         this.fromApiJsonHelper = fromApiJsonHelper;
         this.loanProductRepository = loanProductRepository;
         this.applicationCurrencyRepository = applicationCurrencyRepository;
@@ -120,6 +122,7 @@ public class LoanScheduleAssembler {
         this.clientRepository = clientRepository;
         this.groupRepository = groupRepository;
         this.workingDaysRepository = workingDaysRepository;
+        this.calendarInstanceRepository = calendarInstanceRepository;
     }
 
     public LoanApplicationTerms assembleLoanTerms(final JsonElement element) {
@@ -197,6 +200,12 @@ public class LoanScheduleAssembler {
             validateRepaymentFrequencyIsSameAsMeetingFrequency(meetingPeriodFrequency.getValue(), repaymentFrequencyType,
                     CalendarUtils.getInterval(calendar.getRecurrence()), repaymentEvery);
         }
+        CalendarInstance calendarInstance = this.calendarInstanceRepository.findOne(calendarId);
+        LocalDate rescheduledDate = null;
+        if(calendarInstance != null && calendarInstance.getRescheduledDate() != null){
+        	rescheduledDate = new LocalDate(calendarInstance.getRescheduledDate());
+        }
+       
 
         /*
          * If user has not passed the first repayments date then then derive the
@@ -304,7 +313,7 @@ public class LoanScheduleAssembler {
                 loanProduct.isMultiDisburseLoan(), emiAmount, disbursementDatas, maxOutstandingBalance, loanVariationTermsData,
                 graceOnArrearsAgeing, daysInMonthType, daysInYearType, isInterestRecalculationEnabled, recalculationFrequencyType,
                 restCalendarInstance, compoundingCalendarInstance, compoundingFrequencyType, principalThresholdForLastInstalment,
-                installmentAmountInMultiplesOf, loanProduct.preCloseInterestCalculationStrategy());
+                installmentAmountInMultiplesOf, loanProduct.preCloseInterestCalculationStrategy(),rescheduledDate);
     }
 
     private CalendarInstance createInterestRecalculationCalendarInstance(final LocalDate calendarStartDate,
@@ -329,7 +338,7 @@ public class LoanScheduleAssembler {
         final String title = "loan_recalculation_detail";
         final Calendar calendar = Calendar.createRepeatingCalendar(title, calendarStartDate, CalendarType.COLLECTION.getValue(),
                 calendarFrequencyType, frequency, repeatsOnDay);
-        return CalendarInstance.from(calendar, null, CalendarEntityType.LOAN_RECALCULATION_REST_DETAIL.getValue());
+        return CalendarInstance.from(calendar, null, CalendarEntityType.LOAN_RECALCULATION_REST_DETAIL.getValue(), calendarStartDate.toDate());
     }
 
     private List<DisbursementData> fetchDisbursementData(final JsonObject command) {
@@ -445,7 +454,7 @@ public class LoanScheduleAssembler {
         final Set<LoanCharge> loanCharges = this.loanChargeAssembler.fromParsedJson(element,disbursementDetails);
 
         final LoanScheduleGenerator loanScheduleGenerator = this.loanScheduleFactory.create(loanApplicationTerms.getInterestMethod());
-
+        
         final RoundingMode roundingMode = RoundingMode.HALF_EVEN;
         final MathContext mc = new MathContext(8, roundingMode);
 

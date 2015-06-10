@@ -221,11 +221,14 @@ public final class LoanSummaryWrapper {
     
     public Money calculateTotalChargesRepaidAtDisbursement(Set<LoanCharge> charges, MonetaryCurrency currency) {
         Money total = Money.zero(currency);
-        for (final LoanCharge loanCharge : charges) {
-            if(loanCharge.getAmountPaid(currency).isGreaterThanZero()){
-                total =  total.plus(loanCharge.getAmountPaid(currency));
+        if(charges != null){
+        	for (final LoanCharge loanCharge : charges) {
+                if(loanCharge.getAmountPaid(currency).isGreaterThanZero()){
+                    total =  total.plus(loanCharge.getAmountPaid(currency));
+                }
             }
         }
+        
         return total;
         
     }

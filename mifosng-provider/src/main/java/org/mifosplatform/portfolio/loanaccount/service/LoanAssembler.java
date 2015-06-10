@@ -273,7 +273,6 @@ public class LoanAssembler {
                 LoanProductConstants.recalculationRestFrequencyDateParamName, element);
         final LocalDate recalculationCompoundingFrequencyDate = this.fromApiJsonHelper.extractLocalDateNamed(
                 LoanProductConstants.recalculationCompoundingFrequencyDateParamName, element);
-
         final LoanApplicationTerms loanApplicationTerms = this.loanScheduleAssembler.assembleLoanTerms(element);
         final boolean isHolidayEnabled = this.configurationDomainService.isRescheduleRepaymentsOnHolidaysEnabled();
         final List<Holiday> holidays = this.holidayRepository.findByOfficeIdAndGreaterThanDate(loanApplication.getOfficeId(),

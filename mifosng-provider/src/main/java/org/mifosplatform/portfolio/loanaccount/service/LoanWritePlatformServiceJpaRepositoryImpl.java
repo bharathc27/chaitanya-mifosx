@@ -73,7 +73,6 @@ import org.mifosplatform.portfolio.calendar.domain.CalendarInstance;
 import org.mifosplatform.portfolio.calendar.domain.CalendarInstanceRepository;
 import org.mifosplatform.portfolio.calendar.domain.CalendarRepository;
 import org.mifosplatform.portfolio.calendar.domain.CalendarType;
-import org.mifosplatform.portfolio.calendar.exception.CalendarParameterUpdateNotSupportedException;
 import org.mifosplatform.portfolio.charge.domain.Charge;
 import org.mifosplatform.portfolio.charge.domain.ChargePaymentMode;
 import org.mifosplatform.portfolio.charge.domain.ChargeRepositoryWrapper;
@@ -141,7 +140,6 @@ import org.mifosplatform.portfolio.loanaccount.loanschedule.domain.LoanScheduleM
 import org.mifosplatform.portfolio.loanaccount.loanschedule.domain.ScheduledDateGenerator;
 import org.mifosplatform.portfolio.loanaccount.loanschedule.service.LoanScheduleHistoryWritePlatformService;
 import org.mifosplatform.portfolio.loanaccount.rescheduleloan.domain.LoanRescheduleRequest;
-import org.mifosplatform.portfolio.loanaccount.rescheduleloan.domain.LoanRescheduleRequestRepository;
 import org.mifosplatform.portfolio.loanaccount.serialization.LoanApplicationCommandFromApiJsonHelper;
 import org.mifosplatform.portfolio.loanaccount.serialization.LoanEventApiJsonValidator;
 import org.mifosplatform.portfolio.loanaccount.serialization.LoanUpdateCommandFromApiJsonDeserializer;
@@ -207,7 +205,6 @@ public class LoanWritePlatformServiceJpaRepositoryImpl implements LoanWritePlatf
     private final AccountTransferDetailRepository accountTransferDetailRepository;
     private final BusinessEventNotifierService businessEventNotifierService;
     private final GuarantorDomainService guarantorDomainService;
-    private final LoanRescheduleRequestRepository loanRescheduleRequestRepository;
 
     @Autowired
     public LoanWritePlatformServiceJpaRepositoryImpl(final PlatformSecurityContext context,
@@ -233,8 +230,7 @@ public class LoanWritePlatformServiceJpaRepositoryImpl implements LoanWritePlatf
             final LoanApplicationCommandFromApiJsonHelper loanApplicationCommandFromApiJsonHelper,
             final AccountAssociationsRepository accountAssociationRepository,
             final AccountTransferDetailRepository accountTransferDetailRepository,
-            final BusinessEventNotifierService businessEventNotifierService, final GuarantorDomainService guarantorDomainService,
-            final LoanRescheduleRequestRepository loanRescheduleRequestRepository) {
+            final BusinessEventNotifierService businessEventNotifierService, final GuarantorDomainService guarantorDomainService) {
         this.context = context;
         this.loanEventApiJsonValidator = loanEventApiJsonValidator;
         this.loanAssembler = loanAssembler;
@@ -269,7 +265,6 @@ public class LoanWritePlatformServiceJpaRepositoryImpl implements LoanWritePlatf
         this.accountTransferDetailRepository = accountTransferDetailRepository;
         this.businessEventNotifierService = businessEventNotifierService;
         this.guarantorDomainService = guarantorDomainService;
-        this.loanRescheduleRequestRepository = loanRescheduleRequestRepository;
     }
 
     private LoanLifecycleStateMachine defaultLoanLifecycleStateMachine() {
@@ -2127,19 +2122,31 @@ public class LoanWritePlatformServiceJpaRepositoryImpl implements LoanWritePlatf
         for (final Loan loan : loans) {
             if (loan != null) {
                 if (loan.repaymentScheduleDetail().isInterestRecalculationEnabled()) {
-                    final String defaultUserMessage = "Meeting calendar type update is not supported";
-                    throw new CalendarParameterUpdateNotSupportedException("jlg.loan.recalculation", defaultUserMessage);
-                }
-                holidays = this.holidayRepository.findByOfficeIdAndGreaterThanDate(loan.getOfficeId(), loan.getDisbursementDate().toDate());
+                	if(newMeetingDate != null && !newMeetingDate.equals("")){
+                        Integer rescheduleFromInstallment = null;
+                        Date rescheduleFromDate = null;
+                        LoanRepaymentScheduleInstallment installment = loan.getRepaymentScheduleInstallment(presentMeetingDate);
+                              rescheduleFromInstallment = installment.getInstallmentNumber();
+                              rescheduleFromDate = presentMeetingDate.toDate();
+                              LoanRescheduleRequest loanRescheduleRequest = LoanRescheduleRequest.instance(loan,
+                                      LoanStatus.APPROVED.getValue(), rescheduleFromInstallment, null, null,
+                                      rescheduleFromDate, newMeetingDate.toDate(), null, null, null, null,
+                                      null, DateUtils.getDateOfTenant(), getAppUserIfPresent(), null, null, null, null);
+                           loan.loanRescheduleRequests().add(loanRescheduleRequest);
+                	}
+                    
+                }else{
+                	 holidays = this.holidayRepository.findByOfficeIdAndGreaterThanDate(loan.getOfficeId(), loan.getDisbursementDate().toDate());
 
-                if (reschedulebasedOnMeetingDates != null && reschedulebasedOnMeetingDates) {
-                    loan.updateLoanRepaymentScheduleDates(calendar.getStartDateLocalDate(), calendar.getRecurrence(), isHolidayEnabled,
-                            holidays, workingDays, reschedulebasedOnMeetingDates, presentMeetingDate, newMeetingDate);
-                } else {
-                    loan.updateLoanRepaymentScheduleDates(calendar.getStartDateLocalDate(), calendar.getRecurrence(), isHolidayEnabled,
-                            holidays, workingDays);
+                     if (reschedulebasedOnMeetingDates != null && reschedulebasedOnMeetingDates) {
+                         loan.updateLoanRepaymentScheduleDates(calendar.getStartDateLocalDate(), calendar.getRecurrence(), isHolidayEnabled,
+                                 holidays, workingDays, reschedulebasedOnMeetingDates, presentMeetingDate, newMeetingDate);
+                     } else {
+                         loan.updateLoanRepaymentScheduleDates(calendar.getStartDateLocalDate(), calendar.getRecurrence(), isHolidayEnabled,
+                                 holidays, workingDays);
+                     }
                 }
-
+  
                 saveLoanWithDataIntegrityViolationChecks(loan);
             }
         }
