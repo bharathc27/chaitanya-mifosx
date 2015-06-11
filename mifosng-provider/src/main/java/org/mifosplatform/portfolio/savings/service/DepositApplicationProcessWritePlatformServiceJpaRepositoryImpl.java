@@ -310,7 +310,7 @@ public class DepositApplicationProcessWritePlatformServiceJpaRepositoryImpl impl
                 CalendarInstance parentCalendarInstance = this.calendarInstanceRepository.findByEntityIdAndEntityTypeIdAndCalendarTypeId(
                         groupId, entityType, CalendarType.COLLECTION.getValue());
                 calendarInstance = CalendarInstance.from(parentCalendarInstance.getCalendar(), account.getId(),
-                        CalendarEntityType.SAVINGS.getValue());
+                        CalendarEntityType.SAVINGS.getValue(), null);
             }
         } else {
             LocalDate calendarStartDate = account.depositStartDate();
@@ -322,7 +322,7 @@ public class DepositApplicationProcessWritePlatformServiceJpaRepositoryImpl impl
             final String title = "recurring_savings_" + account.getId();
             final Calendar calendar = Calendar.createRepeatingCalendar(title, calendarStartDate, CalendarType.COLLECTION.getValue(),
                     CalendarFrequencyType.from(periodFrequencyType), frequency, repeatsOnDay);
-            calendarInstance = CalendarInstance.from(calendar, account.getId(), CalendarEntityType.SAVINGS.getValue());
+            calendarInstance = CalendarInstance.from(calendar, account.getId(), CalendarEntityType.SAVINGS.getValue(), null);
         }
         if (calendarInstance == null) {
             final String defaultUserMessage = "No valid recurring details available for recurring depost account creation.";

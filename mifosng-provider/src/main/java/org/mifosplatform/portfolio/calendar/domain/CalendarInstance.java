@@ -5,6 +5,8 @@
  */
 package org.mifosplatform.portfolio.calendar.domain;
 
+import java.util.Date;
+
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -27,19 +29,23 @@ public class CalendarInstance extends AbstractPersistable<Long> {
 
     @Column(name = "entity_type_enum", nullable = false)
     private Integer entityTypeId;
+    
+    @Column(name = "rescheduled_date")
+    private Date rescheduledDate;
 
-    public CalendarInstance(final Calendar calendar, final Long entityId, final Integer entityTypeId) {
+    public CalendarInstance(final Calendar calendar, final Long entityId, final Integer entityTypeId ,final Date rescheduledDate) {
         this.calendar = calendar;
         this.entityId = entityId;
         this.entityTypeId = entityTypeId;
+        this.rescheduledDate = rescheduledDate;
     }
 
     protected CalendarInstance() {
 
     }
 
-    public static CalendarInstance from(final Calendar calendar, final Long entityId, final Integer entityTypeId) {
-        return new CalendarInstance(calendar, entityId, entityTypeId);
+    public static CalendarInstance from(final Calendar calendar, final Long entityId, final Integer entityTypeId, final Date rescheduledDate) {
+        return new CalendarInstance(calendar, entityId, entityTypeId, rescheduledDate);
     }
 
     public void updateCalendar(final Calendar calendar) {
@@ -56,6 +62,14 @@ public class CalendarInstance extends AbstractPersistable<Long> {
 
     public Integer getEntityTypeId() {
         return this.entityTypeId;
+    }
+    
+    public void updateRescheduledDate(final Date rescheduledDate){
+    	this.rescheduledDate = rescheduledDate;
+    }
+    
+    public Date getRescheduledDate(){
+    	return this.rescheduledDate;
     }
 
 }

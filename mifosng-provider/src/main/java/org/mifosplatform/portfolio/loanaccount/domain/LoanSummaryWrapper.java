@@ -20,6 +20,7 @@ import org.springframework.stereotype.Component;
 @Component
 public final class LoanSummaryWrapper {
 
+<<<<<<< HEAD
 	public Money calculateTotalPrincipalRepaid(
 			final List<LoanRepaymentScheduleInstallment> repaymentScheduleInstallments,
 			final MonetaryCurrency currency) {
@@ -254,7 +255,7 @@ public final class LoanSummaryWrapper {
 	public Money calculateTotalChargesRepaidAtDisbursement(
 			Set<LoanCharge> charges, MonetaryCurrency currency) {
 		Money total = Money.zero(currency);
-		if (charges != null && !charges.equals("")) {
+		if (charges != null) {
 			for (final LoanCharge loanCharge : charges) {
 				if (loanCharge.getAmountPaid(currency).isGreaterThanZero()) {
 					total = total.plus(loanCharge.getAmountPaid(currency));

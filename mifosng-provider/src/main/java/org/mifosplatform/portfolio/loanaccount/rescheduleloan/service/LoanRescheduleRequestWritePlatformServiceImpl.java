@@ -304,6 +304,9 @@ public class LoanRescheduleRequestWritePlatformServiceImpl implements LoanResche
             if (!changes.isEmpty()) {
                 Loan loan = loanRescheduleRequest.getLoan();
                 final LoanSummary loanSummary = loan.getSummary();
+                CalendarInstance calendarInstance = this.calendarInstanceRepository.findOne(loan.getId());
+                Date rescheduledDate = calendarInstance.getRescheduledDate();
+               
 
                 final boolean isHolidayEnabled = this.configurationDomainService.isRescheduleRepaymentsOnHolidaysEnabled();
                 final List<Holiday> holidays = this.holidayRepository.findByOfficeIdAndGreaterThanDate(loan.getOfficeId(), loan
@@ -331,7 +334,7 @@ public class LoanRescheduleRequestWritePlatformServiceImpl implements LoanResche
                 }
                 LoanRescheduleModel loanRescheduleModel = new DefaultLoanReschedulerFactory().reschedule(mathContext, interestMethod,
                         loanRescheduleRequest, applicationCurrency, holidayDetailDTO, restCalendarInstance, compoundingCalendarInstance,
-                        loan.loanRescheduleRequests());
+                        loan.loanRescheduleRequests(), rescheduledDate);
 
                 final Collection<LoanRescheduleModelRepaymentPeriod> periods = loanRescheduleModel.getPeriods();
                 List<LoanRepaymentScheduleInstallment> repaymentScheduleInstallments = loan.getRepaymentScheduleInstallments();
