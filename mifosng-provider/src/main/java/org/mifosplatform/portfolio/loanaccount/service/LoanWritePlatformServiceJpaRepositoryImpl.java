@@ -73,6 +73,7 @@ import org.mifosplatform.portfolio.calendar.domain.CalendarInstance;
 import org.mifosplatform.portfolio.calendar.domain.CalendarInstanceRepository;
 import org.mifosplatform.portfolio.calendar.domain.CalendarRepository;
 import org.mifosplatform.portfolio.calendar.domain.CalendarType;
+import org.mifosplatform.portfolio.calendar.exception.MissingInstallmentDateException;
 import org.mifosplatform.portfolio.charge.domain.Charge;
 import org.mifosplatform.portfolio.charge.domain.ChargePaymentMode;
 import org.mifosplatform.portfolio.charge.domain.ChargeRepositoryWrapper;
@@ -2126,6 +2127,10 @@ public class LoanWritePlatformServiceJpaRepositoryImpl implements LoanWritePlatf
                         Integer rescheduleFromInstallment = null;
                         Date rescheduleFromDate = null;
                         LoanRepaymentScheduleInstallment installment = loan.getRepaymentScheduleInstallment(presentMeetingDate);
+                        if(installment == null){
+                        	final String defaultUserMessage = "repayment does not fall on Date " + presentMeetingDate + " for loan Id "+ loan.getId();
+                        	throw new MissingInstallmentDateException("jlg.loan.missing.installment", defaultUserMessage, null); 
+                        }
                               rescheduleFromInstallment = installment.getInstallmentNumber();
                               rescheduleFromDate = presentMeetingDate.toDate();
                               LoanRescheduleRequest loanRescheduleRequest = LoanRescheduleRequest.instance(loan,
@@ -2135,18 +2140,17 @@ public class LoanWritePlatformServiceJpaRepositoryImpl implements LoanWritePlatf
                            loan.loanRescheduleRequests().add(loanRescheduleRequest);
                 	}
                     
-                }else{
-                	 holidays = this.holidayRepository.findByOfficeIdAndGreaterThanDate(loan.getOfficeId(), loan.getDisbursementDate().toDate());
-
-                     if (reschedulebasedOnMeetingDates != null && reschedulebasedOnMeetingDates) {
-                         loan.updateLoanRepaymentScheduleDates(calendar.getStartDateLocalDate(), calendar.getRecurrence(), isHolidayEnabled,
-                                 holidays, workingDays, reschedulebasedOnMeetingDates, presentMeetingDate, newMeetingDate);
-                     } else {
-                         loan.updateLoanRepaymentScheduleDates(calendar.getStartDateLocalDate(), calendar.getRecurrence(), isHolidayEnabled,
-                                 holidays, workingDays);
-                     }
                 }
-  
+            	 holidays = this.holidayRepository.findByOfficeIdAndGreaterThanDate(loan.getOfficeId(), loan.getDisbursementDate().toDate());
+
+                 if (reschedulebasedOnMeetingDates != null && reschedulebasedOnMeetingDates) {
+                     loan.updateLoanRepaymentScheduleDates(calendar.getStartDateLocalDate(), calendar.getRecurrence(), isHolidayEnabled,
+                             holidays, workingDays, reschedulebasedOnMeetingDates, presentMeetingDate, newMeetingDate);
+                 } else {
+                     loan.updateLoanRepaymentScheduleDates(calendar.getStartDateLocalDate(), calendar.getRecurrence(), isHolidayEnabled,
+                             holidays, workingDays);
+                 }
+               
                 saveLoanWithDataIntegrityViolationChecks(loan);
             }
         }

@@ -186,6 +186,7 @@ public class LoanScheduleAssembler {
         final String loanTypeStr = this.fromApiJsonHelper.extractStringNamed(loanTypeParameterName, element);
 
         final AccountType loanType = AccountType.fromName(loanTypeStr);
+        LocalDate rescheduledDate = null;
 
         /*
          * If it is JLG loan/Group Loan then make sure loan frequency is same as
@@ -200,11 +201,13 @@ public class LoanScheduleAssembler {
             validateRepaymentFrequencyIsSameAsMeetingFrequency(meetingPeriodFrequency.getValue(), repaymentFrequencyType,
                     CalendarUtils.getInterval(calendar.getRecurrence()), repaymentEvery);
         }
-        CalendarInstance calendarInstance = this.calendarInstanceRepository.findOne(calendarId);
-        LocalDate rescheduledDate = null;
-        if(calendarInstance != null && calendarInstance.getRescheduledDate() != null){
-        	rescheduledDate = new LocalDate(calendarInstance.getRescheduledDate());
+        if(calendarId != null){
+        	CalendarInstance calendarInstance = this.calendarInstanceRepository.findOne(calendarId);
+            if(calendarInstance != null && calendarInstance.getRescheduledDate() != null){
+            	rescheduledDate = new LocalDate(calendarInstance.getRescheduledDate());
+            }
         }
+        
        
 
         /*

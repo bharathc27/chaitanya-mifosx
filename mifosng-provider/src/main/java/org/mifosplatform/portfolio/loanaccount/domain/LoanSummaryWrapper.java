@@ -20,7 +20,6 @@ import org.springframework.stereotype.Component;
 @Component
 public final class LoanSummaryWrapper {
 
-<<<<<<< HEAD
 	public Money calculateTotalPrincipalRepaid(
 			final List<LoanRepaymentScheduleInstallment> repaymentScheduleInstallments,
 			final MonetaryCurrency currency) {

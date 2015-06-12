@@ -182,7 +182,7 @@ public class LoanAccountDomainServiceJpa implements LoanAccountDomainService {
             final CalendarInstance calendarInstance = this.calendarInstanceRepository.findCalendarInstaneByEntityId(loan.getId(),
                     CalendarEntityType.LOANS.getValue());
        
-            if(calendarInstance.getRescheduledDate() != null){
+            if(calendarInstance != null && calendarInstance.getRescheduledDate() != null){
             	calculatedRepaymentsStartingFromDate = new LocalDate(calendarInstance.getRescheduledDate());
             }else{
             	calculatedRepaymentsStartingFromDate = getCalculatedRepaymentsStartingFromDate(loan.getDisbursementDate(), loan,
