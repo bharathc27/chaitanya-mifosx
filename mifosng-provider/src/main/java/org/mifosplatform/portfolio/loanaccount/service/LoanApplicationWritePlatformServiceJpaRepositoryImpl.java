@@ -270,10 +270,22 @@ public class LoanApplicationWritePlatformServiceJpaRepositoryImpl implements Loa
             if (calendarId != null && calendarId != 0) {
                 calendar = this.calendarRepository.findOne(calendarId);
                 if (calendar == null) { throw new CalendarNotFoundException(calendarId); }
+                CalendarInstance calendarInstance = null;
+                
+                if(newLoanApplication.getExpectedFirstRepaymentOnDate() != null){
+                 calendarInstance = new CalendarInstance(calendar, newLoanApplication.getId(),
+                            CalendarEntityType.LOANS.getValue(),newLoanApplication.getExpectedFirstRepaymentOnDate().toDate());
+                }else{
+                 calendarInstance = new CalendarInstance(calendar, newLoanApplication.getId(),
+                            CalendarEntityType.LOANS.getValue(),newLoanApplication.fetchRepaymentScheduleInstallments().get(0).getDueDate().toDate());
+                }
 
-                final CalendarInstance calendarInstance = new CalendarInstance(calendar, newLoanApplication.getId(),
-                        CalendarEntityType.LOANS.getValue(),calendar.getStartDate());
+                /*final CalendarInstance calendarInstance = new CalendarInstance(calendar, newLoanApplication.getId(),
+                        CalendarEntityType.LOANS.getValue(),newLoanApplication.getExpectedFirstRepaymentOnDate().toDate());*/
                 this.calendarInstanceRepository.save(calendarInstance);
+                /*final CalendarInstance calendarInstance = new CalendarInstance(calendar, newLoanApplication.getId(),
+                        CalendarEntityType.LOANS.getValue(),calendar.getStartDate());
+                this.calendarInstanceRepository.save(calendarInstance);*/
             }
 
             // Save linked account information
