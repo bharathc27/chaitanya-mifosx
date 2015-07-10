@@ -51,6 +51,7 @@ import org.mifosplatform.portfolio.loanaccount.api.LoanApiConstants;
 import org.mifosplatform.portfolio.loanaccount.data.DisbursementData;
 import org.mifosplatform.portfolio.loanaccount.data.HolidayDetailDTO;
 import org.mifosplatform.portfolio.loanaccount.data.LoanTermVariationsData;
+import org.mifosplatform.portfolio.loanaccount.domain.Loan;
 import org.mifosplatform.portfolio.loanaccount.domain.LoanCharge;
 import org.mifosplatform.portfolio.loanaccount.domain.LoanDisbursementDetails;
 import org.mifosplatform.portfolio.loanaccount.domain.LoanRepaymentScheduleInstallment;
@@ -125,16 +126,16 @@ public class LoanScheduleAssembler {
         this.calendarInstanceRepository = calendarInstanceRepository;
     }
 
-    public LoanApplicationTerms assembleLoanTerms(final JsonElement element) {
+    public LoanApplicationTerms assembleLoanTerms(final JsonElement element, Long loanId) {
         final Long loanProductId = this.fromApiJsonHelper.extractLongNamed("productId", element);
 
         final LoanProduct loanProduct = this.loanProductRepository.findOne(loanProductId);
         if (loanProduct == null) { throw new LoanProductNotFoundException(loanProductId); }
 
-        return assembleLoanApplicationTermsFrom(element, loanProduct);
+        return assembleLoanApplicationTermsFrom(element, loanProduct, loanId);
     }
 
-    private LoanApplicationTerms assembleLoanApplicationTermsFrom(final JsonElement element, final LoanProduct loanProduct) {
+    private LoanApplicationTerms assembleLoanApplicationTermsFrom(final JsonElement element, final LoanProduct loanProduct, Long loanId) {
 
         final MonetaryCurrency currency = loanProduct.getCurrency();
         final ApplicationCurrency applicationCurrency = this.applicationCurrencyRepository.findOneWithNotFoundDetection(currency);
@@ -201,8 +202,8 @@ public class LoanScheduleAssembler {
             validateRepaymentFrequencyIsSameAsMeetingFrequency(meetingPeriodFrequency.getValue(), repaymentFrequencyType,
                     CalendarUtils.getInterval(calendar.getRecurrence()), repaymentEvery);
         }
-        if(calendarId != null){
-        	CalendarInstance calendarInstance = this.calendarInstanceRepository.findOne(calendarId);
+        if(calendarId != null && loanId != null){
+        	CalendarInstance calendarInstance = this.calendarInstanceRepository.findCalendarInstaneByCalendarIdAndLoanId(calendarId, loanId);
             if(calendarInstance != null && calendarInstance.getRescheduledDate() != null){
             	rescheduledDate = new LocalDate(calendarInstance.getRescheduledDate());
             }
@@ -416,13 +417,13 @@ public class LoanScheduleAssembler {
     }
 
     public LoanProductRelatedDetail assembleLoanProductRelatedDetail(final JsonElement element) {
-        final LoanApplicationTerms loanApplicationTerms = assembleLoanTerms(element);
+        final LoanApplicationTerms loanApplicationTerms = assembleLoanTerms(element, null);
         return loanApplicationTerms.toLoanProductRelatedDetail();
     }
 
     public LoanScheduleModel assembleLoanScheduleFrom(final JsonElement element) {
         // This method is getting called from calculate loan schedule.
-        final LoanApplicationTerms loanApplicationTerms = assembleLoanTerms(element);
+        final LoanApplicationTerms loanApplicationTerms = assembleLoanTerms(element, null);
         // Get holiday details
         final boolean isHolidayEnabled = this.configurationDomainService.isRescheduleRepaymentsOnHolidaysEnabled();
 

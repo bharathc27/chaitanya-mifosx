@@ -2084,7 +2084,9 @@ public class Loan extends AbstractPersistable<Long> {
             if (expecteddisbursementDate != null) {
                 this.expectedDisbursementDate = expecteddisbursementDate.toDate();
                 actualChanges.put("expectedDisbursementDate", expectedDisbursementDate);
-
+                if(this.actualDisbursementDate == null){ 
+               	 this.interestChargedFromDate = expecteddisbursementDate.toDate();
+               }
                 if (expecteddisbursementDate.isBefore(approvedOn)) {
                     final String errorMessage = "The expected disbursement date should be either on or after the approval date: "
                             + approvedOn.toString();
@@ -5411,5 +5413,12 @@ public class Loan extends AbstractPersistable<Long> {
         }
         return actualDisbursementDate;
     }
+    
+    public void setInterestChargedFromDate(Date interestChargedFromDate) {
+		this.interestChargedFromDate = interestChargedFromDate;
+	}
 
+    public Date getActualDisbursalDate(){
+		return this.actualDisbursementDate;
+	}
 }

@@ -33,12 +33,14 @@ import org.mifosplatform.portfolio.calendar.domain.CalendarInstanceRepository;
 import org.mifosplatform.portfolio.calendar.domain.CalendarRepository;
 import org.mifosplatform.portfolio.calendar.domain.CalendarType;
 import org.mifosplatform.portfolio.calendar.exception.CalendarNotFoundException;
+import org.mifosplatform.portfolio.calendar.exception.CalendarParameterUpdateNotSupportedException;
 import org.mifosplatform.portfolio.calendar.serialization.CalendarCommandFromApiJsonDeserializer;
 import org.mifosplatform.portfolio.client.domain.Client;
 import org.mifosplatform.portfolio.client.domain.ClientRepositoryWrapper;
 import org.mifosplatform.portfolio.group.domain.Group;
 import org.mifosplatform.portfolio.group.domain.GroupRepositoryWrapper;
 import org.mifosplatform.portfolio.loanaccount.domain.Loan;
+import org.mifosplatform.portfolio.loanaccount.domain.LoanRepaymentScheduleInstallment;
 import org.mifosplatform.portfolio.loanaccount.domain.LoanRepository;
 import org.mifosplatform.portfolio.loanaccount.domain.LoanStatus;
 import org.mifosplatform.portfolio.loanaccount.service.LoanWritePlatformService;
@@ -165,6 +167,26 @@ public class CalendarWritePlatformServiceJpaRepositoryImpl implements CalendarWr
         Boolean areActiveEntitiesSynced = false;
         final Long calendarId = command.entityId();
 
+		List<CalendarInstance> loans = this.calendarInstanceRepository
+				.findLoansByEntityIdAndEntityTypeId(calendarId,
+						CalendarEntityType.LOANS.getValue());
+		LocalDate validPresentMeetingDate = command
+				.localDateValueOfParameterNamed(CALENDAR_SUPPORTED_PARAMETERS.PRESENT_MEETING_DATE
+						.getValue());
+		for (CalendarInstance loanId : loans) {
+			Loan loan = this.loanRepository.findOne(loanId.getEntityId());
+			LoanRepaymentScheduleInstallment installment = loan
+					.getRepaymentScheduleInstallments().get(0);
+			if (installment.getDueDate() != null
+					&& installment.getDueDate().equals(validPresentMeetingDate)) {
+				final String defaultUserMessage = "Meeting calendar date update is not supported since its a first repayment date";
+				throw new CalendarParameterUpdateNotSupportedException(
+						"meeting.type", defaultUserMessage,
+						installment.getDueDate(), validPresentMeetingDate);
+
+			}
+
+		}
         final Collection<Integer> loanStatuses = new ArrayList<>(Arrays.asList(LoanStatus.SUBMITTED_AND_PENDING_APPROVAL.getValue(),
                 LoanStatus.APPROVED.getValue(), LoanStatus.ACTIVE.getValue()));
 

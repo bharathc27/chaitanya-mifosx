@@ -330,6 +330,9 @@ public class LoanWritePlatformServiceJpaRepositoryImpl implements LoanWritePlatf
 
         // Recalculate first repayment date based in actual disbursement date.
         final LocalDate actualDisbursementDate = command.localDateValueOfParameterNamed("actualDisbursementDate");
+        if(loan.getActualDisbursalDate() == null){
+        	loan.setInterestChargedFromDate(actualDisbursementDate.toDate());
+        }
         final LocalDate calculatedRepaymentsStartingFromDate = this.loanAccountDomainService.getCalculatedRepaymentsStartingFromDate(
                 actualDisbursementDate, loan, calendarInstance);
         final boolean isHolidayEnabled = this.configurationDomainService.isRescheduleRepaymentsOnHolidaysEnabled();
