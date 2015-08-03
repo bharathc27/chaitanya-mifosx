@@ -90,13 +90,13 @@ public class TomcatJdbcDataSourcePerTenantService implements RoutingDataSourceSe
          * Vishwas- Do we need to enable the below properties and add
          * ResetAbandonedTimer for long running batch Jobs?
          **/
-        // poolConfiguration.setMaxActive(tenant.getMaxActive());
-        // poolConfiguration.setMinIdle(tenant.getMinIdle());
-        // poolConfiguration.setMaxIdle(tenant.getMaxIdle());
+         poolConfiguration.setMaxActive(tenant.getMaxActive());
+         poolConfiguration.setMinIdle(tenant.getMinIdle());
+         poolConfiguration.setMaxIdle(tenant.getMaxIdle());
 
-        // poolConfiguration.setSuspectTimeout(tenant.getSuspectTimeout());
-        // poolConfiguration.setTimeBetweenEvictionRunsMillis(tenant.getTimeBetweenEvictionRunsMillis());
-        // poolConfiguration.setMinEvictableIdleTimeMillis(tenant.getMinEvictableIdleTimeMillis());
+         poolConfiguration.setSuspectTimeout(tenant.getSuspectTimeout());
+         poolConfiguration.setTimeBetweenEvictionRunsMillis(tenant.getTimeBetweenEvictionRunsMillis());
+         poolConfiguration.setMinEvictableIdleTimeMillis(tenant.getMinEvictableIdleTimeMillis());
 
         poolConfiguration.setJdbcInterceptors("org.apache.tomcat.jdbc.pool.interceptor.ConnectionState;"
                 + "org.apache.tomcat.jdbc.pool.interceptor.StatementFinalizer;org.apache.tomcat.jdbc.pool.interceptor.SlowQueryReport");
