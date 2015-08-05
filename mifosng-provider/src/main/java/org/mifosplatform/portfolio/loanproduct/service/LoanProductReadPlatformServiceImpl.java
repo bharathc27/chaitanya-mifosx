@@ -99,12 +99,12 @@ public class LoanProductReadPlatformServiceImpl implements LoanProductReadPlatfo
     	
         // Check if role-specific products are enabled. If yes, fetch only
         // products mapped to current user's office
-        String inClauseForRoles = mifosEntityAccessUtil
+        /*String inClauseForRoles = mifosEntityAccessUtil
                 .getSQLWhereClauseForProductIDsForCurrentUserRoles_ifGlobalConfigEnabled(
                 		MifosEntityType.LOAN_PRODUCT);
         if ((inClauseForRoles != null) && (!(inClauseForRoles.trim().isEmpty()))) {
-            sql += " and id in ( " + inClauseForRoles + " ) ";
-        }
+            sql += " and lp.id in ( " + inClauseForRoles + " ) ";
+        }*/
 
         return this.jdbcTemplate.query(sql, rm, new Object[] {});
     }
@@ -143,7 +143,7 @@ public class LoanProductReadPlatformServiceImpl implements LoanProductReadPlatfo
         
         // Check if role-specific products are enabled. If yes, fetch only
         // products mapped to current user's office
-        String inClauseForRoles = mifosEntityAccessUtil
+        /*String inClauseForRoles = mifosEntityAccessUtil
                 .getSQLWhereClauseForProductIDsForCurrentUserRoles_ifGlobalConfigEnabled(
                 		MifosEntityType.LOAN_PRODUCT);
         if ((inClauseForRoles != null) && (!(inClauseForRoles.trim().isEmpty()))) {
@@ -152,7 +152,7 @@ public class LoanProductReadPlatformServiceImpl implements LoanProductReadPlatfo
         	} else {
         		sql += " where id in ( " + inClauseForRoles + " ) ";
         	}
-        }
+        }*/
 
         return this.jdbcTemplate.query(sql, rm, new Object[] {});
     }

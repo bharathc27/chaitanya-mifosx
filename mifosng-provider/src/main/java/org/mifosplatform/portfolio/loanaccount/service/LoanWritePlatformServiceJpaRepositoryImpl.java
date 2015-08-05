@@ -40,6 +40,7 @@ import org.mifosplatform.infrastructure.jobs.service.JobName;
 import org.mifosplatform.infrastructure.security.service.PlatformSecurityContext;
 import org.mifosplatform.organisation.holiday.domain.Holiday;
 import org.mifosplatform.organisation.holiday.domain.HolidayRepositoryWrapper;
+import org.mifosplatform.organisation.holiday.domain.HolidayStatusType;
 import org.mifosplatform.organisation.monetary.domain.ApplicationCurrency;
 import org.mifosplatform.organisation.monetary.domain.ApplicationCurrencyRepositoryWrapper;
 import org.mifosplatform.organisation.monetary.domain.MonetaryCurrency;
@@ -792,11 +793,12 @@ public class LoanWritePlatformServiceJpaRepositoryImpl implements LoanWritePlatf
         }
         final Loan loan = this.loanAssembler.assembleFrom(loanId);
         final PaymentDetail paymentDetail = this.paymentDetailWritePlatformService.createAndPersistPaymentDetail(command, changes);
-
+        final Boolean isHolidayValidationDone=false;
+        final HolidayDetailDTO holidayDetailDto=null;
         boolean isAccountTransfer = false;
         final CommandProcessingResultBuilder commandProcessingResultBuilder = new CommandProcessingResultBuilder();
         this.loanAccountDomainService.makeRepayment(loan, commandProcessingResultBuilder, transactionDate, transactionAmount,
-                paymentDetail, noteText, txnExternalId, isRecoveryRepayment, isAccountTransfer);
+                paymentDetail, noteText, txnExternalId, isRecoveryRepayment, isAccountTransfer,holidayDetailDto,isHolidayValidationDone);
 
         return commandProcessingResultBuilder.withCommandId(command.commandId()) //
                 .withLoanId(loanId) //
@@ -815,20 +817,36 @@ public class LoanWritePlatformServiceJpaRepositoryImpl implements LoanWritePlatf
         if (repaymentCommand == null) { return changes; }
         List<Long> transactionIds = new ArrayList<>();
         boolean isAccountTransfer = false;
+        final boolean allowTransactionsOnHoliday = this.configurationDomainService.allowTransactionsOnHolidayEnabled();
+        Loan loans = this.loanRepository.findOne(repaymentCommand[0].getLoanId());
+        final List<Holiday> holidays = this.holidayRepository.findByOfficeIdAndGreaterThanDate(loans.getOfficeId(),
+        		repaymentCommand[0].getTransactionDate().toDate());
+        final WorkingDays workingDays = this.workingDaysRepository.findOne();
+        final boolean allowTransactionsOnNonWorkingDay = this.configurationDomainService.allowTransactionsOnNonWorkingDayEnabled();
+        boolean isHolidayEnabled = false;
+        isHolidayEnabled = this.configurationDomainService.isRescheduleRepaymentsOnHolidaysEnabled();
+        HolidayDetailDTO holidayDetailDTO = new HolidayDetailDTO(isHolidayEnabled, holidays, workingDays, allowTransactionsOnHoliday,
+                allowTransactionsOnNonWorkingDay);
+        loans.validateRepaymentDateIsOnHoliday(repaymentCommand[0].getTransactionDate(), holidayDetailDTO.isAllowTransactionsOnHoliday(),
+                holidayDetailDTO.getHolidays());
+        loans.validateRepaymentDateIsOnNonWorkingDay(repaymentCommand[0].getTransactionDate(), holidayDetailDTO.getWorkingDays(),
+                holidayDetailDTO.isAllowTransactionsOnNonWorkingDay());
+        final Boolean isHolidayValidationDone=true;
         for (final SingleRepaymentCommand singleLoanRepaymentCommand : repaymentCommand) {
         	if(singleLoanRepaymentCommand != null){
-        		final Loan loan = this.loanAssembler.assembleFrom(singleLoanRepaymentCommand.getLoanId());
-                final PaymentDetail paymentDetail = singleLoanRepaymentCommand.getPaymentDetail();
-                if (paymentDetail != null && paymentDetail.getId() == null) {
-                    this.paymentDetailWritePlatformService.persistPaymentDetail(paymentDetail);
-                }
-                final CommandProcessingResultBuilder commandProcessingResultBuilder = new CommandProcessingResultBuilder();
-                LoanTransaction loanTransaction = this.loanAccountDomainService.makeRepayment(loan, commandProcessingResultBuilder,
-                        bulkRepaymentCommand.getTransactionDate(), singleLoanRepaymentCommand.getTransactionAmount(), paymentDetail,
-                        bulkRepaymentCommand.getNote(), null, isRecoveryRepayment, isAccountTransfer);
-                transactionIds.add(loanTransaction.getId());
-        	}
-          }
+	            final Loan loan = this.loanAssembler.assembleFrom(singleLoanRepaymentCommand.getLoanId());
+	            final PaymentDetail paymentDetail = singleLoanRepaymentCommand.getPaymentDetail();
+	            if (paymentDetail != null && paymentDetail.getId() == null) {
+	                this.paymentDetailWritePlatformService.persistPaymentDetail(paymentDetail);
+	            }
+	            final CommandProcessingResultBuilder commandProcessingResultBuilder = new CommandProcessingResultBuilder();
+	            LoanTransaction loanTransaction = this.loanAccountDomainService.makeRepayment(loan, commandProcessingResultBuilder,
+	                    bulkRepaymentCommand.getTransactionDate(), singleLoanRepaymentCommand.getTransactionAmount(), paymentDetail,
+	                    bulkRepaymentCommand.getNote(), null, isRecoveryRepayment, isAccountTransfer,holidayDetailDTO,isHolidayValidationDone);
+	            transactionIds.add(loanTransaction.getId());
+	         }
+        }
+
         changes.put("loanTransactions", transactionIds);
         return changes;
     }
