@@ -817,20 +817,27 @@ public class LoanWritePlatformServiceJpaRepositoryImpl implements LoanWritePlatf
         if (repaymentCommand == null) { return changes; }
         List<Long> transactionIds = new ArrayList<>();
         boolean isAccountTransfer = false;
+        HolidayDetailDTO holidayDetailDTO = null;
         final boolean allowTransactionsOnHoliday = this.configurationDomainService.allowTransactionsOnHolidayEnabled();
-        Loan loans = this.loanRepository.findOne(repaymentCommand[0].getLoanId());
-        final List<Holiday> holidays = this.holidayRepository.findByOfficeIdAndGreaterThanDate(loans.getOfficeId(),
-        		repaymentCommand[0].getTransactionDate().toDate());
-        final WorkingDays workingDays = this.workingDaysRepository.findOne();
-        final boolean allowTransactionsOnNonWorkingDay = this.configurationDomainService.allowTransactionsOnNonWorkingDayEnabled();
-        boolean isHolidayEnabled = false;
-        isHolidayEnabled = this.configurationDomainService.isRescheduleRepaymentsOnHolidaysEnabled();
-        HolidayDetailDTO holidayDetailDTO = new HolidayDetailDTO(isHolidayEnabled, holidays, workingDays, allowTransactionsOnHoliday,
-                allowTransactionsOnNonWorkingDay);
-        loans.validateRepaymentDateIsOnHoliday(repaymentCommand[0].getTransactionDate(), holidayDetailDTO.isAllowTransactionsOnHoliday(),
-                holidayDetailDTO.getHolidays());
-        loans.validateRepaymentDateIsOnNonWorkingDay(repaymentCommand[0].getTransactionDate(), holidayDetailDTO.getWorkingDays(),
-                holidayDetailDTO.isAllowTransactionsOnNonWorkingDay());
+        for(final SingleRepaymentCommand singleLoanRepaymentCommand : repaymentCommand){
+        	if(singleLoanRepaymentCommand != null){
+        		Loan loans = this.loanRepository.findOne(singleLoanRepaymentCommand.getLoanId());
+                final List<Holiday> holidays = this.holidayRepository.findByOfficeIdAndGreaterThanDate(loans.getOfficeId(),
+                		singleLoanRepaymentCommand.getTransactionDate().toDate());
+                final WorkingDays workingDays = this.workingDaysRepository.findOne();
+                final boolean allowTransactionsOnNonWorkingDay = this.configurationDomainService.allowTransactionsOnNonWorkingDayEnabled();
+                boolean isHolidayEnabled = false;
+                isHolidayEnabled = this.configurationDomainService.isRescheduleRepaymentsOnHolidaysEnabled();
+                holidayDetailDTO = new HolidayDetailDTO(isHolidayEnabled, holidays, workingDays, allowTransactionsOnHoliday,
+                        allowTransactionsOnNonWorkingDay);
+                loans.validateRepaymentDateIsOnHoliday(singleLoanRepaymentCommand.getTransactionDate(), holidayDetailDTO.isAllowTransactionsOnHoliday(),
+                        holidayDetailDTO.getHolidays());
+                loans.validateRepaymentDateIsOnNonWorkingDay(singleLoanRepaymentCommand.getTransactionDate(), holidayDetailDTO.getWorkingDays(),
+                        holidayDetailDTO.isAllowTransactionsOnNonWorkingDay());
+                break;
+        	}
+        	
+        }
         final Boolean isHolidayValidationDone=true;
         for (final SingleRepaymentCommand singleLoanRepaymentCommand : repaymentCommand) {
         	if(singleLoanRepaymentCommand != null){
