@@ -41,14 +41,24 @@ public class CalendarReadPlatformServiceImpl implements CalendarReadPlatformServ
     private static final class CalendarDataMapper implements RowMapper<CalendarData> {
 
         public String schema() {
-            return " select c.id as id, ci.id as calendarInstanceId, ci.entity_id as entityId, ci.entity_type_enum as entityTypeId, c.title as title, "
+            /*return " select c.id as id, ci.id as calendarInstanceId, ci.entity_id as entityId, ci.entity_type_enum as entityTypeId, c.title as title, "
                     + " c.description as description, c.location as location, c.start_date as startDate, c.end_date as endDate, "
                     + " c.duration as duration, c.calendar_type_enum as typeId, c.repeating as repeating, "
                     + " c.recurrence as recurrence, c.remind_by_enum as remindById, c.first_reminder as firstReminder, c.second_reminder as secondReminder, "
                     + " c.created_date as createdDate, c.lastmodified_date as updatedDate, creatingUser.id as creatingUserId, creatingUser.username as creatingUserName, "
                     + " updatingUser.id as updatingUserId, updatingUser.username as updatingUserName "
                     + " from m_calendar c join m_calendar_instance ci on ci.calendar_id=c.id, m_appuser as creatingUser, m_appuser as updatingUser"
-                    + " where c.createdby_id=creatingUser.id and c.lastmodifiedby_id=updatingUser.id ";
+                    + " where c.createdby_id=creatingUser.id and c.lastmodifiedby_id=updatingUser.id ";*/
+            
+            return " select c.id as id, ci.id as calendarInstanceId, ci.entity_id as entityId, ci.entity_type_enum as entityTypeId, c.title as title, "
+		            + " c.description as description, c.location as location, c.start_date as startDate, c.end_date as endDate, "
+		            + " c.duration as duration, c.calendar_type_enum as typeId, c.repeating as repeating, "
+		            + " c.recurrence as recurrence, c.remind_by_enum as remindById, c.first_reminder as firstReminder, c.second_reminder as secondReminder, "
+		            + " c.created_date as createdDate, c.lastmodified_date as updatedDate, creatingUser.id as creatingUserId, creatingUser.username as creatingUserName, "
+		            + " updatingUser.id as updatingUserId, updatingUser.username as updatingUserName "
+		            + " from m_calendar c INNER JOIN m_appuser creatingUser ON creatingUser.id = c.createdby_id "
+		            + " INNER JOIN m_appuser updatingUser ON updatingUser.id = c.lastmodifiedby_id "
+            		+ " INNER JOIN m_calendar_instance ci ON ci.calendar_id = c.id  ";
         }
 
         @Override
