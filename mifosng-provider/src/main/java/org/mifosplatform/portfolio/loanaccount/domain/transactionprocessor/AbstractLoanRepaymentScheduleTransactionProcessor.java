@@ -327,23 +327,26 @@ public abstract class AbstractLoanRepaymentScheduleTransactionProcessor implemen
             if (loanTransaction.isChargePayment()) {
                 feeAmount = feeCharges;
             }
-            final Money amountPaidTowardsCharge = unpaidCharge.updatePaidAmountBy(amountRemaining, installmentNumber, feeAmount);
-            if (!amountPaidTowardsCharge.isZero()) {
-                Set<LoanChargePaidBy> chargesPaidBies = loanTransaction.getLoanChargesPaid();
-                if (loanTransaction.isChargePayment()) {
-                    for (final LoanChargePaidBy chargePaidBy : chargesPaidBies) {
-                        LoanCharge loanCharge = chargePaidBy.getLoanCharge();
-                        if (loanCharge.getId().equals(unpaidCharge.getId())) {
-                            chargePaidBy.setAmount(amountPaidTowardsCharge.getAmount());
+            if(unpaidCharge != null){
+            	final Money amountPaidTowardsCharge = unpaidCharge.updatePaidAmountBy(amountRemaining, installmentNumber, feeAmount);
+                if (!amountPaidTowardsCharge.isZero()) {
+                    Set<LoanChargePaidBy> chargesPaidBies = loanTransaction.getLoanChargesPaid();
+                    if (loanTransaction.isChargePayment()) {
+                        for (final LoanChargePaidBy chargePaidBy : chargesPaidBies) {
+                            LoanCharge loanCharge = chargePaidBy.getLoanCharge();
+                            if (loanCharge.getId().equals(unpaidCharge.getId())) {
+                                chargePaidBy.setAmount(amountPaidTowardsCharge.getAmount());
+                            }
                         }
+                    } else {
+                        final LoanChargePaidBy loanChargePaidBy = new LoanChargePaidBy(loanTransaction, unpaidCharge,
+                                amountPaidTowardsCharge.getAmount(), installmentNumber);
+                        chargesPaidBies.add(loanChargePaidBy);
                     }
-                } else {
-                    final LoanChargePaidBy loanChargePaidBy = new LoanChargePaidBy(loanTransaction, unpaidCharge,
-                            amountPaidTowardsCharge.getAmount(), installmentNumber);
-                    chargesPaidBies.add(loanChargePaidBy);
+                    amountRemaining = amountRemaining.minus(amountPaidTowardsCharge);
                 }
-                amountRemaining = amountRemaining.minus(amountPaidTowardsCharge);
             }
+            
         }
 
     }
