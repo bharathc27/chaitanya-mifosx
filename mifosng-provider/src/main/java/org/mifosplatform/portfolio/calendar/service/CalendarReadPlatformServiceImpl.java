@@ -50,25 +50,24 @@ public class CalendarReadPlatformServiceImpl implements CalendarReadPlatformServ
                     + " from m_calendar c join m_calendar_instance ci on ci.calendar_id=c.id, m_appuser as creatingUser, m_appuser as updatingUser"
                     + " where c.createdby_id=creatingUser.id and c.lastmodifiedby_id=updatingUser.id ";*/
             
-            return " select c.id as id, ci.id as calendarInstanceId, ci.entity_id as entityId, ci.entity_type_enum as entityTypeId, c.title as title, "
+            return " select c.id as id, c.title as title, "
 		            + " c.description as description, c.location as location, c.start_date as startDate, c.end_date as endDate, "
 		            + " c.duration as duration, c.calendar_type_enum as typeId, c.repeating as repeating, "
 		            + " c.recurrence as recurrence, c.remind_by_enum as remindById, c.first_reminder as firstReminder, c.second_reminder as secondReminder, "
 		            + " c.created_date as createdDate, c.lastmodified_date as updatedDate, creatingUser.id as creatingUserId, creatingUser.username as creatingUserName, "
 		            + " updatingUser.id as updatingUserId, updatingUser.username as updatingUserName "
-		            + " from m_calendar c INNER JOIN m_appuser creatingUser ON creatingUser.id = c.createdby_id "
-		            + " INNER JOIN m_appuser updatingUser ON updatingUser.id = c.lastmodifiedby_id "
-            		+ " INNER JOIN m_calendar_instance ci ON ci.calendar_id = c.id  ";
+		            + " from m_calendar c, m_appuser as creatingUser, m_appuser as updatingUser"
+		            + " where c.createdby_id=creatingUser.id and c.lastmodifiedby_id=updatingUser.id ";
         }
 
         @Override
         public CalendarData mapRow(final ResultSet rs, @SuppressWarnings("unused") final int rowNum) throws SQLException {
 
             final Long id = rs.getLong("id");
-            final Long calendarInstanceId = rs.getLong("calendarInstanceId");
-            final Long entityId = rs.getLong("entityId");
-            final Integer entityTypeId = rs.getInt("entityTypeId");
-            final EnumOptionData entityType = CalendarEnumerations.calendarEntityType(entityTypeId);
+            final Long calendarInstanceId = null;
+            final Long entityId = null;
+            final Integer entityTypeId = null;
+            final EnumOptionData entityType = null;
             final String title = rs.getString("title");
             final String description = rs.getString("description");
             final String location = rs.getString("location");
@@ -107,16 +106,68 @@ public class CalendarReadPlatformServiceImpl implements CalendarReadPlatformServ
                     lastUpdatedByUserName);
         }
     }
+    
+    private static final class CalendarDataMapperInstance implements RowMapper<CalendarData> {
+
+    	public String schemaCalendarInstance(){
+        	return " SELECT ci.calendar_id as calenderId, ci.id as calendarInstanceId, ci.entity_id as entityId, ci.entity_type_enum as entityTypeId FROM m_calendar_instance ci WHERE ";
+        }
+
+		@Override
+		public CalendarData mapRow(ResultSet rs, int rowNum) throws SQLException {
+			
+			final Long id = rs.getLong("calenderId");
+			final Long calendarInstanceId = rs.getLong("calendarInstanceId");
+			final Long entityId = rs.getLong("entityId");
+            final Integer entityTypeId = rs.getInt("entityTypeId");
+            final EnumOptionData entityType = CalendarEnumerations.calendarEntityType(entityTypeId);
+            final String title = null;
+            final String description = null;
+            final String location = null;
+            final LocalDate startDate = null;
+            final LocalDate endDate = null;
+            final Integer duration = null;
+            final Integer typeId = null;
+            final EnumOptionData type = null;
+            final boolean repeating = false;
+            final String recurrence = null;
+            final EnumOptionData frequency = null;
+            final Integer interval = null;
+            final EnumOptionData repeatsOnDay = null;
+            final Integer remindById = null;
+            EnumOptionData remindBy = null;
+            String humanReadable = null;
+            final Integer firstReminder = null;
+            final Integer secondReminder = null;
+            final LocalDate createdDate = null;
+            final LocalDate lastUpdatedDate = null;
+            final Long createdByUserId = null;
+            final String createdByUserName = null;
+            final Long lastUpdatedByUserId = null;
+            final String lastUpdatedByUserName = null;
+           
+			
+            return CalendarData.instance(id, calendarInstanceId, entityId, entityType, title, description, location, startDate, endDate,
+                    duration, type, repeating, recurrence, frequency, interval, repeatsOnDay, remindBy, firstReminder, secondReminder,
+                    humanReadable, createdDate, lastUpdatedDate, createdByUserId, createdByUserName, lastUpdatedByUserId,
+                    lastUpdatedByUserName);
+		}
+    }
 
     @Override
     public CalendarData retrieveCalendar(final Long calendarId, final Long entityId, final Integer entityTypeId) {
 
         try {
             final CalendarDataMapper rm = new CalendarDataMapper();
+            final CalendarDataMapperInstance rmi = new CalendarDataMapperInstance();
 
-            final String sql = rm.schema() + " and c.id = ? and ci.entity_id = ? and ci.entity_type_enum = ? ";
+            final String sql = rmi.schemaCalendarInstance() + " ci.entity_id = ? and ci.entity_type_enum = ? ";
 
-            return this.jdbcTemplate.queryForObject(sql, rm, new Object[] { calendarId, entityId, entityTypeId });
+            CalendarData calendarData =  this.jdbcTemplate.queryForObject(sql, rmi, new Object[] { entityId, entityTypeId });
+            
+            final String query = rm.schema() + "and c.id = ? and c.calendar_type_enum = 1 order by c.start_date ";
+            
+            return this.jdbcTemplate.queryForObject(query, rm, new Object[] { calendarId });
         } catch (final EmptyResultDataAccessException e) {
             throw new CalendarNotFoundException(calendarId);
         }
@@ -126,19 +177,32 @@ public class CalendarReadPlatformServiceImpl implements CalendarReadPlatformServ
     public Collection<CalendarData> retrieveCalendarsByEntity(final Long entityId, final Integer entityTypeId,
             final List<Integer> calendarTypeOptions) {
         final CalendarDataMapper rm = new CalendarDataMapper();
+        final CalendarDataMapperInstance rmi = new CalendarDataMapperInstance();
 
-        Collection<CalendarData> result = null;
+        List<CalendarData> result = null;
+        List<CalendarData> calendarData = null;
 
         String sql = "";
-
+        String query = "";
+        result = new ArrayList<CalendarData>();
         if (calendarTypeOptions == null || calendarTypeOptions.isEmpty()) {
-            sql = rm.schema() + " and ci.entity_id = ? and ci.entity_type_enum = ? order by c.start_date ";
-            result = this.jdbcTemplate.query(sql, rm, new Object[] { entityId, entityTypeId });
+            sql = rmi.schemaCalendarInstance() + " ci.entity_id = ? and ci.entity_type_enum = ?  ";
+            calendarData = this.jdbcTemplate.query(sql, rmi, new Object[] { entityId, entityTypeId });
+            for(CalendarData calendarDat : calendarData){
+            	query = rm.schema() + " and c.id = ? order by c.start_date ";
+            	result.addAll(this.jdbcTemplate.query(query, rm, new Object[] { calendarDat.getId() }));
+            }
+            
         } else if (!calendarTypeOptions.isEmpty()) {
             final String sqlCalendarTypeOptions = CalendarUtils.getSqlCalendarTypeOptionsInString(calendarTypeOptions);
-            sql = rm.schema() + " and ci.entity_id = ? and ci.entity_type_enum = ? and c.calendar_type_enum in ( " + sqlCalendarTypeOptions
-                    + " ) order by c.start_date ";
-            result = this.jdbcTemplate.query(sql, rm, new Object[] { entityId, entityTypeId });
+            sql = rmi.schemaCalendarInstance() + " and ci.entity_id = ? and ci.entity_type_enum = ? and c.calendar_type_enum in ( " + sqlCalendarTypeOptions
+                    + " ) ";
+            calendarData = this.jdbcTemplate.query(sql, rmi, new Object[] { entityId, entityTypeId });
+            for(CalendarData calendarDat : calendarData){
+            	query = rm.schema() + " and c.id = ? order by c.start_date ";
+            	result.addAll(this.jdbcTemplate.query(query, rm, new Object[] { calendarDat.getId() }));
+            }
+       
         }
         return result;
     }
@@ -146,12 +210,17 @@ public class CalendarReadPlatformServiceImpl implements CalendarReadPlatformServ
     @Override
     public CalendarData retrieveCollctionCalendarByEntity(final Long entityId, final Integer entityTypeId) {
         final CalendarDataMapper rm = new CalendarDataMapper();
-
-        final String sql = rm.schema()
-                + " and ci.entity_id = ? and ci.entity_type_enum = ? and calendar_type_enum = ? order by c.start_date ";
-        final List<CalendarData> result = this.jdbcTemplate.query(sql, rm,
-                new Object[] { entityId, entityTypeId, CalendarType.COLLECTION.getValue() });
-
+        final CalendarDataMapperInstance rmi = new CalendarDataMapperInstance();
+        
+        final String sql = rmi.schemaCalendarInstance() + " ci.entity_id = ? and ci.entity_type_enum = ? ";
+        
+        CalendarData calendarData =  this.jdbcTemplate.queryForObject(sql, rmi, new Object[] { entityId, entityTypeId });
+        
+        final String query = rm.schema() + " and c.id = ? and c.calendar_type_enum = ? order by c.start_date ";
+        
+        final List<CalendarData> result = this.jdbcTemplate.query(query, rm,
+                new Object[] { calendarData.getId(),CalendarType.COLLECTION.getValue() });
+ 
         if (!result.isEmpty() && result.size() > 0) { return result.get(0); }
 
         return null;
@@ -162,21 +231,34 @@ public class CalendarReadPlatformServiceImpl implements CalendarReadPlatformServ
             final List<Integer> calendarTypeOptions) {
 
         final CalendarDataMapper rm = new CalendarDataMapper();
-        Collection<CalendarData> result = null;
+        final CalendarDataMapperInstance rmi = new CalendarDataMapperInstance();
+        List<CalendarData> result = null;
         String sql = "";
+        String query = "";
+        List<CalendarData> calendarData = null;
         final CalendarEntityType ceType = CalendarEntityType.fromInt(entityTypeId);
         final String parentHeirarchyCondition = getParentHierarchyCondition(ceType);
-
+        result = new ArrayList<CalendarData>();
         // FIXME :AA center is the parent entity of group, change this code to
         // support more parent entity types.
         if (calendarTypeOptions == null || calendarTypeOptions.isEmpty()) {
-            sql = rm.schema() + " " + parentHeirarchyCondition + " and ci.entity_type_enum = ? order by c.start_date ";
-            result = this.jdbcTemplate.query(sql, rm, new Object[] { entityId, CalendarEntityType.CENTERS.getValue() });
+        	sql = rmi.schemaCalendarInstance() + " " + parentHeirarchyCondition + " and ci.entity_type_enum = ?  ";
+        	calendarData = this.jdbcTemplate.query(sql, rmi, new Object[] { entityId, CalendarEntityType.CENTERS.getValue() });
+        	for(CalendarData calendarDat : calendarData){
+        		query = rm.schema() + " c.id = ? order by c.start_date ";
+        		result.addAll(this.jdbcTemplate.query(query, rm, new Object[] { calendarDat.getId() }));
+        	}
+    
         } else {
             final String sqlCalendarTypeOptions = CalendarUtils.getSqlCalendarTypeOptionsInString(calendarTypeOptions);
-            sql = rm.schema() + " " + parentHeirarchyCondition + " and ci.entity_type_enum = ? and c.calendar_type_enum in ("
-                    + sqlCalendarTypeOptions + ") order by c.start_date ";
-            result = this.jdbcTemplate.query(sql, rm, new Object[] { entityId, CalendarEntityType.CENTERS.getValue() });
+            sql = rmi.schemaCalendarInstance() + " " + parentHeirarchyCondition + " and ci.entity_type_enum = ? and c.calendar_type_enum in ("
+                    + sqlCalendarTypeOptions + ") ";
+        	calendarData = this.jdbcTemplate.query(sql, rmi, new Object[] { entityId, CalendarEntityType.CENTERS.getValue() });
+        	for(CalendarData calendarDat : calendarData){
+        		query = rm.schema() + " c.id = ? order by c.start_date ";
+                result.addAll(this.jdbcTemplate.query(query, rm, new Object[] { calendarDat.getId() }));
+        	}
+        
         }
         return result;
     }
@@ -339,11 +421,20 @@ public class CalendarReadPlatformServiceImpl implements CalendarReadPlatformServ
     @Override
     public CalendarData retrieveLoanCalendar(final Long loanId) {
         final CalendarDataMapper rm = new CalendarDataMapper();
+        final CalendarDataMapperInstance rmi = new CalendarDataMapperInstance();
 
-        final String sql = rm.schema() + " and ci.entity_id = ? and ci.entity_type_enum = ? order by c.start_date ";
+        List<CalendarData> calendarDat = null;
+        final String sql = rmi.schemaCalendarInstance() + " ci.entity_id = ? and ci.entity_type_enum = ? ";
+        String query = null;
+        final List<CalendarData> calendars = new ArrayList<>();
+        calendarDat = this.jdbcTemplate.query(sql, rmi, new Object[] { loanId, CalendarEntityType.LOANS.getValue() });
+        for(CalendarData calendarDetails : calendarDat){
+        	 query = rm.schema() + " c.id = ? order by c.start_date ";
+        	 calendars.addAll(this.jdbcTemplate.query(query, rm, new Object[] { calendarDetails.getId() }));
+        }
+       
         CalendarData calendarData = null;
-        final Collection<CalendarData> calendars = this.jdbcTemplate.query(sql, rm,
-                new Object[] { loanId, CalendarEntityType.LOANS.getValue() });
+        /*final Collection<CalendarData> calendars = this.jdbcTemplate.query(query, rm, new Object[] { calendarDat.getId() });*/
 
         if (!CollectionUtils.isEmpty(calendars)) {
             for (final CalendarData calendar : calendars) {
