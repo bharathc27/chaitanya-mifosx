@@ -118,7 +118,10 @@ public class LoanChargeAssembler {
                              
                         }
                         
-                        if((chargeDefinition.isPercentageOfDisbursementAmount() || chargeDefinition.isPercentageOfApprovedAmount()) && disbursementDetails != null){
+
+                        if((chargeDefinition.isPercentageOfDisbursementAmount() || chargeDefinition.isPercentageOfApprovedAmount()
+                        		|| chargeDefinition.getChargeCalculation() == ChargeCalculationType.FLAT.getValue()) && disbursementDetails != null){
+
                             LoanTrancheDisbursementCharge loanTrancheDisbursementCharge = null;
                             for(LoanDisbursementDetails disbursementDetail : disbursementDetails){
                                 if(chargeDefinition.getChargeTime() == ChargeTimeType.DISBURSEMENT.getValue()) {
@@ -151,15 +154,16 @@ public class LoanChargeAssembler {
                         	 if(disbursementDetails != null){
                         		 for(LoanDisbursementDetails disbursementDetail : disbursementDetails){
                             		 if(!(expectedDisbursementDate.isBefore(disbursementDetail.expectedDisbursementDateAsLocalDate()))){
-                            			 if(chargeDefinition.getChargeCalculation() == ChargeCalculationType.FLAT.getValue()){
-                                      		if(chargeDefinition.getChargeTime() == ChargeTimeType.DISBURSEMENT.getValue() ||
-                                      				chargeDefinition.getChargeTime() == ChargeTimeType.SPECIFIED_DUE_DATE.getValue()){
-                                      			final LoanCharge loanCharge = LoanCharge.createNewWithoutLoan(chargeDefinition, principal, amount, chargeTime,
-                                                          chargeCalculation, dueDate, chargePaymentModeEnum, numberOfRepayments);
-                                                  loanCharges.add(loanCharge);
-                                                  loanTrancheDisbursementCharge = new LoanTrancheDisbursementCharge(loanCharge,disbursementDetail);
-                                                  loanCharge.updateLoanTrancheDisbursementCharge(loanTrancheDisbursementCharge);
-                                      		}
+
+                            			 if(chargeDefinition.getChargeCalculation() == ChargeCalculationType.PERCENT_OF_AMOUNT_AND_INTEREST.getValue()
+                            					 || chargeDefinition.getChargeTime() == ChargeTimeType.SPECIFIED_DUE_DATE.getValue()
+                            					 || chargeDefinition.getChargeCalculation() == ChargeCalculationType.PERCENT_OF_INTEREST.getValue()){
+                                  			final LoanCharge loanCharge = LoanCharge.createNewWithoutLoan(chargeDefinition, principal, amount, chargeTime,
+                                                      chargeCalculation, dueDate, chargePaymentModeEnum, numberOfRepayments);
+                                              loanCharges.add(loanCharge);
+                                              loanTrancheDisbursementCharge = new LoanTrancheDisbursementCharge(loanCharge,disbursementDetail);
+                                              loanCharge.updateLoanTrancheDisbursementCharge(loanTrancheDisbursementCharge);
+
                                       	}
                             		 }
                             	 }

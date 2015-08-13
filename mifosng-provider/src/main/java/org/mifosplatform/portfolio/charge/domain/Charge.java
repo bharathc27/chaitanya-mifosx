@@ -159,7 +159,7 @@ public class Charge extends AbstractPersistable<Long> {
 
         } else if (isLoanCharge()) {
 
-            if (penalty && chargeTime.isTimeOfDisbursement()) { throw new ChargeDueAtDisbursementCannotBePenaltyException(name); }
+            if (penalty && chargeTime.isTimeOfDisbursement() || chargeTime.isTrancheDisbursement()) { throw new ChargeDueAtDisbursementCannotBePenaltyException(name); }
             if (!penalty && chargeTime.isOverdueInstallment()) { throw new ChargeMustBePenaltyException(name); }
             if (!isAllowedLoanChargeTime()) {
                 baseDataValidator.reset().parameter("chargeTimeType").value(this.chargeTime)

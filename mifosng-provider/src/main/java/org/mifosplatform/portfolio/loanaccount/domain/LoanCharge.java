@@ -269,6 +269,7 @@ public class LoanCharge extends AbstractPersistable<Long> {
             case PERCENT_OF_APPROVED_AMOUNT:
             case PERCENT_OF_AMOUNT_AND_INTEREST:
             case PERCENT_OF_INTEREST:
+            case PERCENT_OF_DISBURSEMENT_AMOUNT:	
                 this.percentage = chargeAmount;
                 this.amountPercentageAppliedTo = amountPercentageAppliedTo;
                 if (loanCharge.compareTo(BigDecimal.ZERO) == 0) {
@@ -280,7 +281,7 @@ public class LoanCharge extends AbstractPersistable<Long> {
                 this.amountWaived = null;
                 this.amountWrittenOff = null;
             break;
-            case PERCENT_OF_DISBURSEMENT_AMOUNT:
+/*            case PERCENT_OF_DISBURSEMENT_AMOUNT:
                 this.percentage = chargeAmount;
                 this.amountPercentageAppliedTo = amountPercentageAppliedTo;
                 if (loanCharge.compareTo(BigDecimal.ZERO) == 0) {
@@ -291,7 +292,7 @@ public class LoanCharge extends AbstractPersistable<Long> {
                 this.amountOutstanding = calculateOutstanding();
                 this.amountWaived = null;
                 this.amountWrittenOff = null;
-           break;
+           break;*/
         }
         this.amountOrPercentage = chargeAmount;
         if (this.loan != null && isInstalmentFee()) {
@@ -384,6 +385,7 @@ public class LoanCharge extends AbstractPersistable<Long> {
                 case PERCENT_OF_APPROVED_AMOUNT:
                 case PERCENT_OF_AMOUNT_AND_INTEREST:
                 case PERCENT_OF_INTEREST:
+                case PERCENT_OF_DISBURSEMENT_AMOUNT:	
                     this.percentage = amount;
                     this.amountPercentageAppliedTo = loanPrincipal;
                     if (loanCharge.compareTo(BigDecimal.ZERO) == 0) {
@@ -391,14 +393,14 @@ public class LoanCharge extends AbstractPersistable<Long> {
                     }
                     this.amount = minimumAndMaximumCap(loanCharge);
                 break;
-                case PERCENT_OF_DISBURSEMENT_AMOUNT:
+/*                case PERCENT_OF_DISBURSEMENT_AMOUNT:
                     this.percentage = amount;
                     this.amountPercentageAppliedTo = loanPrincipal;
                     if (loanCharge.compareTo(BigDecimal.ZERO) == 0) {
                         loanCharge = percentageOf(this.amountPercentageAppliedTo);
                     }
                     this.amount = minimumAndMaximumCap(loanCharge);
-               break;  
+               break;*/  
             }
             this.amountOrPercentage = amount;
             this.amountOutstanding = calculateOutstanding();
@@ -422,6 +424,7 @@ public class LoanCharge extends AbstractPersistable<Long> {
                     amountPercentageAppliedTo = this.loan.getTotalInterest();
                 break;
                 case PERCENT_OF_DISBURSEMENT_AMOUNT:
+/*<<<<<<< HEAD
                     Set<LoanDisbursementDetails> loanCharge = this.loan.getDisbursementDetails();
                     for(LoanDisbursementDetails loanDisbursementDetails : loanCharge){
                     	if(loanDisbursementDetails.getDisbursementDate() != null && 
@@ -429,6 +432,10 @@ public class LoanCharge extends AbstractPersistable<Long> {
                     		amountPercentageAppliedTo = loanDisbursementDetails.principal();
                     	}
                     }
+=======*/
+                	LoanTrancheDisbursementCharge loanTrancheDisbursementCharge = this.loanTrancheDisbursementCharge;
+                	amountPercentageAppliedTo = loanTrancheDisbursementCharge.getloanDisbursementDetails().principal();
+/*>>>>>>> origin/LoanTranche*/
                 break;
                 default:
                 break;
@@ -475,20 +482,7 @@ public class LoanCharge extends AbstractPersistable<Long> {
                 case PERCENT_OF_APPROVED_AMOUNT:
                 case PERCENT_OF_AMOUNT_AND_INTEREST:
                 case PERCENT_OF_INTEREST:
-                    this.percentage = newValue;
-                    this.amountPercentageAppliedTo = amount;
-                    loanCharge = BigDecimal.ZERO;
-                    if (isInstalmentFee()) {
-                        loanCharge = this.loan.calculatePerInstallmentChargeAmount(ChargeCalculationType.fromInt(this.chargeCalculation),
-                                this.percentage);
-                    }
-                    if (loanCharge.compareTo(BigDecimal.ZERO) == 0) {
-                        loanCharge = percentageOf(this.amountPercentageAppliedTo);
-                    }
-                    this.amount = minimumAndMaximumCap(loanCharge);
-                    this.amountOutstanding = calculateOutstanding();
-                break;
-                case PERCENT_OF_DISBURSEMENT_AMOUNT:
+                case PERCENT_OF_DISBURSEMENT_AMOUNT:	
                     this.percentage = newValue;
                     this.amountPercentageAppliedTo = amount;
                     loanCharge = BigDecimal.ZERO;

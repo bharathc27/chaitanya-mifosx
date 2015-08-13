@@ -1342,8 +1342,15 @@ public class LoanReadPlatformServiceImpl implements LoanReadPlatformService {
         final Collection<CodeValueData> loanPurposeOptions = this.codeValueReadPlatformService.retrieveCodeValuesByCode("LoanPurpose");
         final Collection<CodeValueData> loanCollateralOptions = this.codeValueReadPlatformService
                 .retrieveCodeValuesByCode("LoanCollateral");
-        final Collection<ChargeData> chargeOptions = this.chargeReadPlatformService.retrieveLoanProductApplicableCharges(productId,
-                new ChargeTimeType[] { ChargeTimeType.OVERDUE_INSTALLMENT });
+        Collection<ChargeData> chargeOptions = null;
+        if(loanProduct.getMultiDisburseLoan()){
+        	chargeOptions = this.chargeReadPlatformService.retrieveLoanProductApplicableCharges(productId,
+                    new ChargeTimeType[] { ChargeTimeType.OVERDUE_INSTALLMENT });
+        }else{
+        	chargeOptions = this.chargeReadPlatformService.retrieveLoanProductApplicableCharges(productId,
+                    new ChargeTimeType[] { ChargeTimeType.OVERDUE_INSTALLMENT, ChargeTimeType.TRANCHE_DISBURSEMENT });
+        }
+        
         Integer loanCycleCounter = null;
         if (loanProduct.useBorrowerCycle()) {
             if (clientId == null) {
@@ -1465,8 +1472,9 @@ public class LoanReadPlatformServiceImpl implements LoanReadPlatformService {
 
         public String schema() {
         	return "dd.id as id,dd.expected_disburse_date as expectedDisbursementdate, dd.disbursedon_date as actualDisbursementdate,dd.principal as principal,sum(lc.amount) chargeAmount,group_concat(lc.id) loanChargeId "+
-        	"from m_loan l left join m_loan_disbursement_detail dd on dd.loan_id = l.id left join m_loan_tranche_disbursement_charge tdc on tdc.disbursement_detail_id=dd.id " +
-        	"left join m_loan_charge lc on  lc.id=tdc.loan_charge_id";
+        	"from m_loan l inner join m_loan_disbursement_detail dd on dd.loan_id = l.id left join m_loan_tranche_disbursement_charge tdc on tdc.disbursement_detail_id=dd.id " +
+        	"left join m_loan_charge lc on  lc.id=tdc.loan_charge_id and lc.is_active=1";
+
         }
 
         @Override
