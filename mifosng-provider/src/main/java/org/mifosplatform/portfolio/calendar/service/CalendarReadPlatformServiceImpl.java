@@ -165,7 +165,7 @@ public class CalendarReadPlatformServiceImpl implements CalendarReadPlatformServ
 
             CalendarData calendarData =  this.jdbcTemplate.queryForObject(sql, rmi, new Object[] { entityId, entityTypeId });
             
-            final String query = rm.schema() + "and c.id = ? and c.calendar_type_enum = 1 order by c.start_date ";
+            final String query = rm.schema() + "and c.id = ? order by c.start_date ";
             
             return this.jdbcTemplate.queryForObject(query, rm, new Object[] { calendarId });
         } catch (final EmptyResultDataAccessException e) {
@@ -188,19 +188,19 @@ public class CalendarReadPlatformServiceImpl implements CalendarReadPlatformServ
         if (calendarTypeOptions == null || calendarTypeOptions.isEmpty()) {
             sql = rmi.schemaCalendarInstance() + " ci.entity_id = ? and ci.entity_type_enum = ?  ";
             calendarData = this.jdbcTemplate.query(sql, rmi, new Object[] { entityId, entityTypeId });
-            for(CalendarData calendarDat : calendarData){
+            for(CalendarData calendarDetail : calendarData){
             	query = rm.schema() + " and c.id = ? order by c.start_date ";
-            	result.addAll(this.jdbcTemplate.query(query, rm, new Object[] { calendarDat.getId() }));
+            	result.addAll(this.jdbcTemplate.query(query, rm, new Object[] { calendarDetail.getId() }));
             }
             
         } else if (!calendarTypeOptions.isEmpty()) {
             final String sqlCalendarTypeOptions = CalendarUtils.getSqlCalendarTypeOptionsInString(calendarTypeOptions);
-            sql = rmi.schemaCalendarInstance() + " and ci.entity_id = ? and ci.entity_type_enum = ? and c.calendar_type_enum in ( " + sqlCalendarTypeOptions
+            sql = rmi.schemaCalendarInstance() + " ci.entity_id = ? and ci.entity_type_enum = ? and c.calendar_type_enum in ( " + sqlCalendarTypeOptions
                     + " ) ";
             calendarData = this.jdbcTemplate.query(sql, rmi, new Object[] { entityId, entityTypeId });
-            for(CalendarData calendarDat : calendarData){
+            for(CalendarData calendarDetail : calendarData){
             	query = rm.schema() + " and c.id = ? order by c.start_date ";
-            	result.addAll(this.jdbcTemplate.query(query, rm, new Object[] { calendarDat.getId() }));
+            	result.addAll(this.jdbcTemplate.query(query, rm, new Object[] { calendarDetail.getId() }));
             }
        
         }
@@ -211,15 +211,19 @@ public class CalendarReadPlatformServiceImpl implements CalendarReadPlatformServ
     public CalendarData retrieveCollctionCalendarByEntity(final Long entityId, final Integer entityTypeId) {
         final CalendarDataMapper rm = new CalendarDataMapper();
         final CalendarDataMapperInstance rmi = new CalendarDataMapperInstance();
+        List<CalendarData> calendarData = null;
+        String query = null;
+        List<CalendarData> result = null;
         
         final String sql = rmi.schemaCalendarInstance() + " ci.entity_id = ? and ci.entity_type_enum = ? ";
         
-        CalendarData calendarData =  this.jdbcTemplate.queryForObject(sql, rmi, new Object[] { entityId, entityTypeId });
-        
-        final String query = rm.schema() + " and c.id = ? and c.calendar_type_enum = ? order by c.start_date ";
-        
-        final List<CalendarData> result = this.jdbcTemplate.query(query, rm,
-                new Object[] { calendarData.getId(),CalendarType.COLLECTION.getValue() });
+        calendarData =  this.jdbcTemplate.query(sql, rmi, new Object[] { entityId, entityTypeId });
+        result = new ArrayList<>();
+        for(CalendarData calendarDetail : calendarData){
+        	query = rm.schema() + " and c.id = ? and c.calendar_type_enum = ? order by c.start_date ";
+        	result.addAll(this.jdbcTemplate.query(query, rm,
+                    new Object[] { calendarDetail.getId(),CalendarType.COLLECTION.getValue() }));
+        }
  
         if (!result.isEmpty() && result.size() > 0) { return result.get(0); }
 
@@ -244,9 +248,9 @@ public class CalendarReadPlatformServiceImpl implements CalendarReadPlatformServ
         if (calendarTypeOptions == null || calendarTypeOptions.isEmpty()) {
         	sql = rmi.schemaCalendarInstance() + " " + parentHeirarchyCondition + " and ci.entity_type_enum = ?  ";
         	calendarData = this.jdbcTemplate.query(sql, rmi, new Object[] { entityId, CalendarEntityType.CENTERS.getValue() });
-        	for(CalendarData calendarDat : calendarData){
-        		query = rm.schema() + " c.id = ? order by c.start_date ";
-        		result.addAll(this.jdbcTemplate.query(query, rm, new Object[] { calendarDat.getId() }));
+        	for(CalendarData calendarDetail : calendarData){
+        		query = rm.schema() + " and c.id = ? order by c.start_date ";
+        		result.addAll(this.jdbcTemplate.query(query, rm, new Object[] { calendarDetail.getId() }));
         	}
     
         } else {
@@ -254,9 +258,9 @@ public class CalendarReadPlatformServiceImpl implements CalendarReadPlatformServ
             sql = rmi.schemaCalendarInstance() + " " + parentHeirarchyCondition + " and ci.entity_type_enum = ? and c.calendar_type_enum in ("
                     + sqlCalendarTypeOptions + ") ";
         	calendarData = this.jdbcTemplate.query(sql, rmi, new Object[] { entityId, CalendarEntityType.CENTERS.getValue() });
-        	for(CalendarData calendarDat : calendarData){
-        		query = rm.schema() + " c.id = ? order by c.start_date ";
-                result.addAll(this.jdbcTemplate.query(query, rm, new Object[] { calendarDat.getId() }));
+        	for(CalendarData calendarDetail : calendarData){
+        		query = rm.schema() + " and c.id = ? order by c.start_date ";
+                result.addAll(this.jdbcTemplate.query(query, rm, new Object[] { calendarDetail.getId() }));
         	}
         
         }
@@ -423,19 +427,18 @@ public class CalendarReadPlatformServiceImpl implements CalendarReadPlatformServ
         final CalendarDataMapper rm = new CalendarDataMapper();
         final CalendarDataMapperInstance rmi = new CalendarDataMapperInstance();
 
-        List<CalendarData> calendarDat = null;
+        List<CalendarData> calendarDetails = null;
         final String sql = rmi.schemaCalendarInstance() + " ci.entity_id = ? and ci.entity_type_enum = ? ";
         String query = null;
         final List<CalendarData> calendars = new ArrayList<>();
-        calendarDat = this.jdbcTemplate.query(sql, rmi, new Object[] { loanId, CalendarEntityType.LOANS.getValue() });
-        for(CalendarData calendarDetails : calendarDat){
-        	 query = rm.schema() + " c.id = ? order by c.start_date ";
-        	 calendars.addAll(this.jdbcTemplate.query(query, rm, new Object[] { calendarDetails.getId() }));
+        calendarDetails = this.jdbcTemplate.query(sql, rmi, new Object[] { loanId, CalendarEntityType.LOANS.getValue() });
+        for(CalendarData calendarDetail : calendarDetails){
+        	 query = rm.schema() + " and c.id = ? order by c.start_date ";
+        	 calendars.addAll(this.jdbcTemplate.query(query, rm, new Object[] { calendarDetail.getId() }));
         }
        
         CalendarData calendarData = null;
-        /*final Collection<CalendarData> calendars = this.jdbcTemplate.query(query, rm, new Object[] { calendarDat.getId() });*/
-
+   
         if (!CollectionUtils.isEmpty(calendars)) {
             for (final CalendarData calendar : calendars) {
                 calendarData = calendar;
@@ -453,18 +456,18 @@ public class CalendarReadPlatformServiceImpl implements CalendarReadPlatformServ
             case CLIENTS:
                 // TODO : AA : do we need to propagate to top level parent in
                 // hierarchy?
-                conditionSql = " and ci.entity_id in (select gc.group_id from m_client c join m_group_client gc "
+                conditionSql = " ci.entity_id in (select gc.group_id from m_client c join m_group_client gc "
                         + " on c.id=gc.client_id where c.id = ? ) ";
             break;
 
             case GROUPS:
                 // TODO : AA: add parent hierarchy for groups
-                conditionSql = " and ci.entity_id in (select g.parent_id from m_group g where g.id = ? ) ";
+                conditionSql = " ci.entity_id in (select g.parent_id from m_group g where g.id = ? ) ";
             break;
 
             case LOANS:
                 // TODO : AA: do we need parent hierarchy calendars for loans?
-                conditionSql = " and ci.entity_id = ?  ";
+                conditionSql = " ci.entity_id = ?  ";
             break;
 
             default:
