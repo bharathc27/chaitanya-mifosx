@@ -20,6 +20,7 @@ import org.mifosplatform.portfolio.calendar.domain.CalendarInstance;
 import org.mifosplatform.portfolio.collectionsheet.command.CollectionSheetBulkDisbursalCommand;
 import org.mifosplatform.portfolio.collectionsheet.command.CollectionSheetBulkRepaymentCommand;
 import org.mifosplatform.portfolio.loanaccount.domain.LoanTransaction;
+import org.mifosplatform.portfolio.loanaccount.loanschedule.data.OverdueLoanScheduleData;
 
 public interface LoanWritePlatformService {
 
@@ -81,7 +82,7 @@ public interface LoanWritePlatformService {
 
     CommandProcessingResult updateDisbursementDateAndAmountForTranche(Long loanId, Long disbursementId, JsonCommand command);
 
-    void recalculateInterest();
+ //   void recalculateInterest();
 
     CommandProcessingResult recoverFromGuarantor(Long loanId);
 
@@ -90,5 +91,7 @@ public interface LoanWritePlatformService {
     CommandProcessingResult makeLoanRefund(Long loanId, JsonCommand command);
 
 	CommandProcessingResult addAndDeleteLoanDisburseDetails(Long loanId, JsonCommand command);
+   void applyOverdueChargesForLoan(Long loanId, Collection<OverdueLoanScheduleData> overdueLoanScheduleDatas);
+	void recalculateInterest(long loanId);
 
 }

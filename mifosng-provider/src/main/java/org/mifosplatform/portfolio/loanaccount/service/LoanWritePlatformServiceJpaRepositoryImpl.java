@@ -2488,17 +2488,16 @@ public class LoanWritePlatformServiceJpaRepositoryImpl implements LoanWritePlatf
             if (sb.length() > 0) { throw new JobExecutionException(sb.toString()); }
         }
     }
-
+    @Override
     @Transactional
     public void applyOverdueChargesForLoan(final Long loanId, Collection<OverdueLoanScheduleData> overdueLoanScheduleDatas) {
-
         Loan loan = null;
         final List<Long> existingTransactionIds = new ArrayList<>();
         final List<Long> existingReversedTransactionIds = new ArrayList<>();
         boolean runInterestRecalculation = false;
         for (final OverdueLoanScheduleData overdueInstallment : overdueLoanScheduleDatas) {
 
-            final JsonElement parsedCommand = this.fromApiJsonHelper.parse(overdueInstallment.toString());
+        	final JsonElement parsedCommand = this.fromApiJsonHelper.parse(overdueInstallment.toString());
             final JsonCommand command = JsonCommand.from(overdueInstallment.toString(), parsedCommand, this.fromApiJsonHelper, null, null,
                     null, null, null, loanId, null, null, null, null);
             LoanOverdueDTO overdueDTO = applyChargeToOverdueLoanInstallment(loanId, overdueInstallment.getChargeId(),
@@ -2770,7 +2769,7 @@ public class LoanWritePlatformServiceJpaRepositoryImpl implements LoanWritePlatf
         LocalDate recalculateFrom = null;
         Long overdurPenaltyWaitPeriod = null;
         if (loan.repaymentScheduleDetail().isInterestRecalculationEnabled()) {
-            restCalendarInstance = calendarInstanceRepository.findCalendarInstaneByEntityId(loan.loanInterestRecalculationDetailId(),
+            	restCalendarInstance = calendarInstanceRepository.findCalendarInstaneByEntityId(loan.loanInterestRecalculationDetailId(),
                     CalendarEntityType.LOAN_RECALCULATION_REST_DETAIL.getValue());
             compoundingCalendarInstance = calendarInstanceRepository.findCalendarInstaneByEntityId(
                     loan.loanInterestRecalculationDetailId(), CalendarEntityType.LOAN_RECALCULATION_COMPOUNDING_DETAIL.getValue());
@@ -2912,7 +2911,7 @@ public class LoanWritePlatformServiceJpaRepositoryImpl implements LoanWritePlatf
         return transaction;
     }
 
-    @Override
+/*    @Override
     @CronTarget(jobName = JobName.RECALCULATE_INTEREST_FOR_LOAN)
     public void recalculateInterest() {
         Collection<Long> loanIds = this.loanReadPlatformService.fetchArrearLoans();
@@ -2920,8 +2919,9 @@ public class LoanWritePlatformServiceJpaRepositoryImpl implements LoanWritePlatf
             recalculateInterest(loanId);
         }
     }
-
+*/
     @Transactional
+    @Override
     public void recalculateInterest(final long loanId) {
         AppUser currentUser = getAppUserIfPresent();
         Loan loan = this.loanAssembler.assembleFrom(loanId);
