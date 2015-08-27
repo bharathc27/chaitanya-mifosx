@@ -8,6 +8,7 @@ package org.mifosplatform.portfolio.loanaccount.service;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -560,7 +561,14 @@ public class LoanApplicationWritePlatformServiceJpaRepositoryImpl implements Loa
 
                 existingLoanApplication.updateGroup(group);
             }
-
+            
+            final String repaymentsStartingFromDateParamName = "repaymentsStartingFromDate";
+            Date repaymentsStartingFromDate = null;
+            if (changes.containsKey(repaymentsStartingFromDateParamName)) {
+                repaymentsStartingFromDate = command.DateValueOfParameterNamed(repaymentsStartingFromDateParamName);
+                
+            }
+            
             final String productIdParamName = "productId";
             if (changes.containsKey(productIdParamName)) {
                 final Long productId = command.longValueOfParameterNamed(productIdParamName);
@@ -695,6 +703,15 @@ public class LoanApplicationWritePlatformServiceJpaRepositoryImpl implements Loa
                 final CalendarInstance calendarInstance = ciList.get(0);
                 this.calendarInstanceRepository.delete(calendarInstance);
             }
+            
+
+            if(ciList != null && !ciList.isEmpty()){
+               final CalendarInstance updateCalendarInstance = ciList.get(0);
+               if(repaymentsStartingFromDate != null && updateCalendarInstance.getCalendar().getId() == calendar.getId()){
+                   updateCalendarInstance.updateRescheduledDate(repaymentsStartingFromDate);
+                   this.calendarInstanceRepository.saveAndFlush(updateCalendarInstance);
+               }
+           }
 
             // Save linked account information
             final String linkAccountIdParamName = "linkAccountId";
