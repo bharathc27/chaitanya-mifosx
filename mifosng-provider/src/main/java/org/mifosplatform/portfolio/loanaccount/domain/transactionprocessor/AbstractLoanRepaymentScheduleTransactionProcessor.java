@@ -327,6 +327,7 @@ public abstract class AbstractLoanRepaymentScheduleTransactionProcessor implemen
             if (loanTransaction.isChargePayment()) {
                 feeAmount = feeCharges;
             }
+            if(unpaidCharge == null) break ;
             if(unpaidCharge != null){
             	final Money amountPaidTowardsCharge = unpaidCharge.updatePaidAmountBy(amountRemaining, installmentNumber, feeAmount);
                 if (!amountPaidTowardsCharge.isZero()) {

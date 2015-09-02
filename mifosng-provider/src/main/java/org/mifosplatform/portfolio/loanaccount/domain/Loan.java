@@ -1702,18 +1702,18 @@ public class Loan extends AbstractPersistable<Long> {
                                           loanCharge.updateLoanTrancheDisbursementCharge(loanTrancheDisbursementCharge);
                                     }
                                 }else{
+                                 if(chargeIds != null){
+                                	 charge = fetchLoanChargesById(Long.parseLong(chargeIds));
+                                     chargeDefinition = charge.getCharge();
+                                     final LoanCharge loanCharge = LoanCharge.createNewWithoutLoan(chargeDefinition, principal, null, null,
+                                             null, new LocalDate(expectedDisbursementDate), null, null);
+                                     loanCharge.update(this);
+                                     this.charges.add(loanCharge);
 
-                                    charge = fetchLoanChargesById(Long.parseLong(chargeIds));
-                                    chargeDefinition = charge.getCharge();
-                                    final LoanCharge loanCharge = LoanCharge.createNewWithoutLoan(chargeDefinition, principal, null, null,
-                                            null, new LocalDate(expectedDisbursementDate), null, null);
-                                    loanCharge.update(this);
-                                    this.charges.add(loanCharge);
-
-                                    LoanTrancheDisbursementCharge loanTrancheDisbursementCharge = new LoanTrancheDisbursementCharge(loanCharge,disbursementDetails);
-                                    loanCharge.updateLoanTrancheDisbursementCharge(loanTrancheDisbursementCharge);
+                                     LoanTrancheDisbursementCharge loanTrancheDisbursementCharge = new LoanTrancheDisbursementCharge(loanCharge,disbursementDetails);
+                                     loanCharge.updateLoanTrancheDisbursementCharge(loanTrancheDisbursementCharge);
+                                 }
                                 }
-                                
                             }
                             
 

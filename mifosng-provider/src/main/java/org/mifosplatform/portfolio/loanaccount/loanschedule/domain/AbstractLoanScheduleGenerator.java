@@ -1155,9 +1155,12 @@ public abstract class AbstractLoanScheduleGenerator implements LoanScheduleGener
         		loanRescheduleRequests);
         updateMapWithAmount(principalPortionMap, unprocessed, applicableDate);
         installment.addPrincipalAmount(unprocessed);
-        LoanRepaymentScheduleInstallment lastInstallment = installments.get(installments.size() - 1);
-        lastInstallment.updatePrincipal(lastInstallment.getPrincipal(unprocessed.getCurrency()).plus(unprocessed).getAmount());
-        lastInstallment.payPrincipalComponent(detail.getTransactionDate(), unprocessed);
+        if(!installments.isEmpty()){
+        	LoanRepaymentScheduleInstallment lastInstallment = installments.get(installments.size() - 1);
+            lastInstallment.updatePrincipal(lastInstallment.getPrincipal(unprocessed.getCurrency()).plus(unprocessed).getAmount());
+            lastInstallment.payPrincipalComponent(detail.getTransactionDate(), unprocessed);
+        }
+        
     }
 
     /**
@@ -1610,6 +1613,7 @@ public abstract class AbstractLoanScheduleGenerator implements LoanScheduleGener
         return interestCharges;
     }
 
+    
     private Money cumulativeFeeChargesDueWithin(final LocalDate periodStart, final LocalDate periodEnd, final Set<LoanCharge> loanCharges,
             final MonetaryCurrency monetaryCurrency, final PrincipalInterest principalInterestForThisPeriod,
             final Money principalDisbursed, final Money totalInterestChargedForFullLoanTerm, int numberOfRepayments,
@@ -1618,7 +1622,7 @@ public abstract class AbstractLoanScheduleGenerator implements LoanScheduleGener
         Money cumulative = Money.zero(monetaryCurrency);
 
         for (final LoanCharge loanCharge : loanCharges) {
-            if (loanCharge.isFeeCharge()) {
+            if (!loanCharge.isDueAtDisbursement() && loanCharge.isFeeCharge()) {
                 if (loanCharge.isInstalmentFee() && isInstallmentChargeApplicable) {
                     cumulative = calculateInstallmentCharge(principalInterestForThisPeriod, numberOfRepayments, cumulative, loanCharge);
                 } else if (loanCharge.isOverdueInstallmentCharge()
@@ -1637,6 +1641,35 @@ public abstract class AbstractLoanScheduleGenerator implements LoanScheduleGener
 
         return cumulative;
     }
+
+    /*private Money cumulativeFeeChargesDueWithin(final LocalDate periodStart, final LocalDate periodEnd, final Set<LoanCharge> loanCharges,
+            final MonetaryCurrency monetaryCurrency, final PrincipalInterest principalInterestForThisPeriod,
+            final Money principalDisbursed, final Money totalInterestChargedForFullLoanTerm, int numberOfRepayments,
+            boolean isInstallmentChargeApplicable) {
+
+        Money cumulative = Money.zero(monetaryCurrency);
+
+        for (final LoanCharge loanCharge : loanCharges) {
+            if (!loanCharge.isDueAtDisbursement() && loanCharge.isFeeCharge()) {
+            
+                if (loanCharge.isInstalmentFee() && isInstallmentChargeApplicable) {
+                    cumulative = calculateInstallmentCharge(principalInterestForThisPeriod, numberOfRepayments, cumulative, loanCharge);
+                } else if (loanCharge.isOverdueInstallmentCharge()
+                        && loanCharge.isDueForCollectionFromAndUpToAndIncluding(periodStart, periodEnd)
+                        && loanCharge.getChargeCalculation().isPercentageBased()) {
+                    cumulative = cumulative.plus(loanCharge.chargeAmount());
+                } else if (loanCharge.isDueForCollectionFromAndUpToAndIncluding(periodStart, periodEnd)
+                        && loanCharge.getChargeCalculation().isPercentageBased()) {
+                    cumulative = calculateSpecificDueDateChargeWithPercentage(principalDisbursed, totalInterestChargedForFullLoanTerm,
+                            cumulative, loanCharge);
+                } else if (loanCharge.isDueForCollectionFromAndUpToAndIncluding(periodStart, periodEnd)) {
+                    cumulative = cumulative.plus(loanCharge.amount());
+                }
+            }
+        }
+
+        return cumulative;
+    }*/
 
     private Money calculateSpecificDueDateChargeWithPercentage(final Money principalDisbursed,
             final Money totalInterestChargedForFullLoanTerm, Money cumulative, final LoanCharge loanCharge) {

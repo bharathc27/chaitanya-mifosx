@@ -9,6 +9,7 @@ import java.lang.reflect.Type;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
@@ -28,6 +29,7 @@ import org.mifosplatform.portfolio.calendar.exception.NotValidRecurringDateExcep
 import org.mifosplatform.portfolio.calendar.service.CalendarUtils;
 import org.mifosplatform.portfolio.loanaccount.api.LoanApiConstants;
 import org.mifosplatform.portfolio.loanaccount.domain.LoanDisbursementDetails;
+import org.mifosplatform.portfolio.loanaccount.exception.RescheduleRepaymentDateException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -432,5 +434,18 @@ public final class LoanEventApiJsonValidator {
         validatePaymentDetails(baseDataValidator, element);
         throwExceptionIfValidationWarningsExist(dataValidationErrors);
     }
+    
+    public void validateRescheduledRepaymentDate(LocalDate disbursementDate, Date adjustRepaymentDate) {
+    	String defaultUserMessage = "";
+    	if(adjustRepaymentDate != null){
+    	final LocalDate newRescheduledRepaymentDate = new LocalDate(adjustRepaymentDate);
+	    	if(newRescheduledRepaymentDate.isEqual(disbursementDate) || newRescheduledRepaymentDate.isBefore(disbursementDate)){
+	    	  defaultUserMessage = "rescheduledRepaymentDate cannot be before the nextRepaymentDate.";
+	    	           throw new RescheduleRepaymentDateException("rescheduled.repayment.date.cannot.be.before.the.next.repayment.date", defaultUserMessage,
+	    	            adjustRepaymentDate.toString(), disbursementDate.toString());
+	       }
+       }
+
+   }
 
 }

@@ -287,7 +287,9 @@ public class LoanWritePlatformServiceJpaRepositoryImpl implements LoanWritePlatf
         checkClientOrGroupActive(loan);
         
         final LocalDate nextRepaymentDate = command.localDateValueOfParameterNamed("nextRepaymentDate");
+        final LocalDate disbursementDate = command.localDateValueOfParameterNamed("actualDisbursementDate");
         final Date adjustRepaymentDate = command.DateValueOfParameterNamed("adjustRepaymentDate");
+        this.loanEventApiJsonValidator.validateRescheduledRepaymentDate(disbursementDate,adjustRepaymentDate);
         Date rescheduleFromDate = null;
         Integer rescheduleFromInstallment = null;
         if(adjustRepaymentDate != null && !adjustRepaymentDate.equals("")){
@@ -383,12 +385,12 @@ public class LoanWritePlatformServiceJpaRepositoryImpl implements LoanWritePlatf
                     recalculateFrom, overdurPenaltyWaitPeriod);
 
             regenerateScheduleOnDisbursement(command, loan, recalculateSchedule, scheduleGeneratorDTO);
+
+            changedTransactionDetail = loan.disburse(currentUser, command, changes, scheduleGeneratorDTO);
             if (loan.repaymentScheduleDetail().isInterestRecalculationEnabled()) {
                 this.loanScheduleHistoryWritePlatformService.createAndSaveLoanScheduleArchive(loan.fetchRepaymentScheduleInstallments(),
                         loan, null);
             }
-
-            changedTransactionDetail = loan.disburse(currentUser, command, changes, scheduleGeneratorDTO);
         }
         if (!changes.isEmpty()) {
             saveAndFlushLoanWithDataIntegrityViolationChecks(loan);
