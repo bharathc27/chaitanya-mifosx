@@ -94,4 +94,6 @@ public interface LoanWritePlatformService {
    void applyOverdueChargesForLoan(Long loanId, Collection<OverdueLoanScheduleData> overdueLoanScheduleDatas);
 	void recalculateInterest(long loanId);
 
+	CommandProcessingResult undoLastLoanDisbursal(Long loanId, JsonCommand command);
+
 }

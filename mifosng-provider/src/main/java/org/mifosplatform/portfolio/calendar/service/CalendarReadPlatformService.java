@@ -10,6 +10,7 @@ import java.util.List;
 
 import org.joda.time.LocalDate;
 import org.mifosplatform.portfolio.calendar.data.CalendarData;
+import org.mifosplatform.portfolio.calendar.domain.CalendarInstance;
 import org.mifosplatform.portfolio.meeting.data.MeetingData;
 
 public interface CalendarReadPlatformService {
@@ -38,5 +39,6 @@ public interface CalendarReadPlatformService {
     LocalDate generateNextEligibleMeetingDateForCollection(CalendarData calendarData, MeetingData lastMeetingData);
 
 	Collection<LocalDate> generateMeetingDatesAfterLastTransactionDate(CalendarData calendarData, Collection<LocalDate> nextTenRecurringDates);
+
 
 }
