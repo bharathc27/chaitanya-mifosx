@@ -91,4 +91,6 @@ public interface LoanWritePlatformService {
 
 	CommandProcessingResult addAndDeleteLoanDisburseDetails(Long loanId, JsonCommand command);
 
+	CommandProcessingResult undoLastLoanDisbursal(Long loanId, JsonCommand command);
+
 }

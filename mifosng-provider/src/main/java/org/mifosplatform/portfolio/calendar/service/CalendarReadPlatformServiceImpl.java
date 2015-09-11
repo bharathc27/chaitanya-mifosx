@@ -18,6 +18,7 @@ import org.mifosplatform.infrastructure.core.service.DateUtils;
 import org.mifosplatform.infrastructure.core.service.RoutingDataSource;
 import org.mifosplatform.portfolio.calendar.data.CalendarData;
 import org.mifosplatform.portfolio.calendar.domain.CalendarEntityType;
+import org.mifosplatform.portfolio.calendar.domain.CalendarInstance;
 import org.mifosplatform.portfolio.calendar.domain.CalendarType;
 import org.mifosplatform.portfolio.calendar.exception.CalendarNotFoundException;
 import org.mifosplatform.portfolio.meeting.data.MeetingData;
@@ -300,6 +301,7 @@ public class CalendarReadPlatformServiceImpl implements CalendarReadPlatformServ
     @Override
     public Collection<LocalDate> generateNextTenRecurringDates(CalendarData calendarData) {
         final LocalDate tillDate = null;
+       // final List lastTransactionDate = retriveCalendarInstanceByCalendarId(calendarData.getId());
         return generateRecurringDate(calendarData, DateUtils.getLocalDateOfTenant(), tillDate, 10);
     }
 
@@ -556,4 +558,24 @@ public class CalendarReadPlatformServiceImpl implements CalendarReadPlatformServ
                     lastUpdatedByUserName);
         }
     }
+
+	@Override
+	public List retriveCalendarInstanceByCalendarId(Long calendarId) {
+		List lastTransactionDate = new ArrayList<>();
+		
+		try{
+			final CalendarDataMapperInstance rmi = new CalendarDataMapperInstance(); 
+			final String sql = "select a.cid,max(a.tid) from (select ci.calendar_id cid,t.loan_id loan_id,max(t.transaction_date) tid from m_loan_transaction t "+
+					"inner join m_loan m on m.id = t.loan_id and m.loan_status_id in (100,200,300) "+
+					"inner join m_calendar_instance ci on ci.entity_id = m.id and ci.entity_type_enum = "+CalendarEntityType.LOANS.getValue()+" "+
+					"where t.transaction_type_enum = 2 "+ 
+					"and t.is_reversed=0 and ci.calendar_id = "+calendarId+" group by m.id) a ";
+					
+			lastTransactionDate =  this.jdbcTemplate.queryForList(sql);
+		}catch(final EmptyResultDataAccessException e) {
+            return null;
+        }
+		
+		return lastTransactionDate;
+	}
 }

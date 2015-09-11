@@ -89,6 +89,11 @@ public class DefaultLoanLifecycleStateMachine implements LoanLifecycleStateMachi
                     newState = stateOf(LoanStatus.OVERPAID, this.allowedLoanStatuses);
                 }
             break;
+            case LOAN_DISBURSAL_UNDOLAST:
+            	 if (anyOfAllowedWhenComingFrom(from, LoanStatus.ACTIVE)) {
+                     newState = stateOf(LoanStatus.APPROVED, this.allowedLoanStatuses);
+                 }
+            break;
             case LOAN_CLOSED:
             break;
             case WRITE_OFF_OUTSTANDING_UNDO:
