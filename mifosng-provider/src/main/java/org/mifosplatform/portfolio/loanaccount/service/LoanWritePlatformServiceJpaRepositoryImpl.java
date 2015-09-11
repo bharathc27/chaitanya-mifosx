@@ -290,6 +290,10 @@ public class LoanWritePlatformServiceJpaRepositoryImpl implements LoanWritePlatf
         final LocalDate disbursementDate = command.localDateValueOfParameterNamed("actualDisbursementDate");
         final Date adjustRepaymentDate = command.DateValueOfParameterNamed("adjustRepaymentDate");
         this.loanEventApiJsonValidator.validateRescheduledRepaymentDate(disbursementDate,adjustRepaymentDate);
+        boolean updateOriginalScheduleIfRepaymentDateChanged = false;
+        if(adjustRepaymentDate != null){
+         updateOriginalScheduleIfRepaymentDateChanged = true;
+        }
         Date rescheduleFromDate = null;
         Integer rescheduleFromInstallment = null;
         if(adjustRepaymentDate != null && !adjustRepaymentDate.equals("")){
@@ -384,13 +388,14 @@ public class LoanWritePlatformServiceJpaRepositoryImpl implements LoanWritePlatf
                     calculatedRepaymentsStartingFromDate, holidayDetailDTO, restCalendarInstance, compoundingCalendarInstance,
                     recalculateFrom, overdurPenaltyWaitPeriod);
 
-            regenerateScheduleOnDisbursement(command, loan, recalculateSchedule, scheduleGeneratorDTO);
-
-            changedTransactionDetail = loan.disburse(currentUser, command, changes, scheduleGeneratorDTO);
+            regenerateScheduleOnDisbursement(command, loan, recalculateSchedule, scheduleGeneratorDTO, updateOriginalScheduleIfRepaymentDateChanged);
             if (loan.repaymentScheduleDetail().isInterestRecalculationEnabled()) {
                 this.loanScheduleHistoryWritePlatformService.createAndSaveLoanScheduleArchive(loan.fetchRepaymentScheduleInstallments(),
                         loan, null);
             }
+            
+            changedTransactionDetail = loan.disburse(currentUser, command, changes, scheduleGeneratorDTO);
+            
         }
         if (!changes.isEmpty()) {
             saveAndFlushLoanWithDataIntegrityViolationChecks(loan);
@@ -640,7 +645,7 @@ public class LoanWritePlatformServiceJpaRepositoryImpl implements LoanWritePlatf
                 final ScheduleGeneratorDTO scheduleGeneratorDTO = new ScheduleGeneratorDTO(loanScheduleFactory, applicationCurrency,
                         firstRepaymentOnDate, holidayDetailDTO, restCalendarInstance, compoundingCalendarInstance, recalculateFrom,
                         overdurPenaltyWaitPeriod);
-                regenerateScheduleOnDisbursement(command, loan, recalculateSchedule, scheduleGeneratorDTO);
+                regenerateScheduleOnDisbursement(command, loan, recalculateSchedule, scheduleGeneratorDTO, false);
                 if (loan.repaymentScheduleDetail().isInterestRecalculationEnabled()) {
                     this.loanScheduleHistoryWritePlatformService.createAndSaveLoanScheduleArchive(
                             loan.fetchRepaymentScheduleInstallments(), loan, null);
@@ -3003,11 +3008,11 @@ public class LoanWritePlatformServiceJpaRepositoryImpl implements LoanWritePlatf
     }
 
     private void regenerateScheduleOnDisbursement(final JsonCommand command, final Loan loan, final boolean recalculateSchedule,
-            final ScheduleGeneratorDTO scheduleGeneratorDTO) {
+            final ScheduleGeneratorDTO scheduleGeneratorDTO, boolean updateOriginalScheduleIfRepaymentDateChanged) {
         AppUser currentUser = getAppUserIfPresent();
         final LocalDate actualDisbursementDate = command.localDateValueOfParameterNamed("actualDisbursementDate");
         BigDecimal emiAmount = command.bigDecimalValueOfParameterNamed(LoanApiConstants.emiAmountParameterName);
-        loan.regenerateScheduleOnDisbursement(scheduleGeneratorDTO, recalculateSchedule, actualDisbursementDate, emiAmount, currentUser);
+        loan.regenerateScheduleOnDisbursement(scheduleGeneratorDTO, recalculateSchedule, actualDisbursementDate, emiAmount, currentUser, updateOriginalScheduleIfRepaymentDateChanged);
     }
 
     private List<LoanRepaymentScheduleInstallment> retrieveRepaymentScheduleFromModel(LoanScheduleModel model) {

@@ -242,12 +242,14 @@ public class GroupsApiResource {
                             collectionMeetingCalendar, withHistory, tillDate);
                     final Collection<LocalDate> nextTenRecurringDates = this.calendarReadPlatformService
                             .generateNextTenRecurringDates(collectionMeetingCalendar);
+                    final Collection<LocalDate> nextMeetingDatesAfterLastTransactionDate = this.calendarReadPlatformService
+                    		.generateMeetingDatesAfterLastTransactionDate(collectionMeetingCalendar, nextTenRecurringDates);
                     final MeetingData lastMeeting = this.meetingReadPlatformService.retrieveLastMeeting(collectionMeetingCalendar
                             .getCalendarInstanceId());
                     final LocalDate recentEligibleMeetingDate = this.calendarReadPlatformService
                             .generateNextEligibleMeetingDateForCollection(collectionMeetingCalendar, lastMeeting);
                     collectionMeetingCalendar = CalendarData.withRecurringDates(collectionMeetingCalendar, recurringDates,
-                            nextTenRecurringDates, recentEligibleMeetingDate);
+                    		nextMeetingDatesAfterLastTransactionDate, recentEligibleMeetingDate);
                 }
             }
 

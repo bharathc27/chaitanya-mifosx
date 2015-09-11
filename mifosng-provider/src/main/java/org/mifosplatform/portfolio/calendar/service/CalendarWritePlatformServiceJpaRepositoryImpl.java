@@ -247,7 +247,7 @@ public class CalendarWritePlatformServiceJpaRepositoryImpl implements CalendarWr
              * updated calendar
              */
 
-            changes = calendarForUpdate.updateStartDateAndDerivedFeilds(newMeetingDate);
+            changes = calendarForUpdate.updateStartDateAndDerivedFeilds(newMeetingDate, presentMeetingDate);
 
         } else {
             changes = calendarForUpdate.update(command, areActiveEntitiesSynced);

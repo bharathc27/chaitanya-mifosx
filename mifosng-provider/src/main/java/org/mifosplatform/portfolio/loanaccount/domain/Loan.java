@@ -2246,7 +2246,7 @@ public class Loan extends AbstractPersistable<Long> {
     }
 
     public void regenerateScheduleOnDisbursement(final ScheduleGeneratorDTO scheduleGeneratorDTO, final boolean recalculateSchedule,
-            final LocalDate actualDisbursementDate, BigDecimal emiAmount, final AppUser currentUser) {
+            final LocalDate actualDisbursementDate, BigDecimal emiAmount, final AppUser currentUser, boolean updateOriginalScheduleIfRepaymentDateChanged) {
         boolean isEmiAmountChanged = false;
         if ((this.loanProduct.isMultiDisburseLoan() || this.loanProduct.canDefineInstallmentAmount()) && emiAmount != null
                 && emiAmount.compareTo(retriveLastEmiAmount()) != 0) {
@@ -2260,7 +2260,8 @@ public class Loan extends AbstractPersistable<Long> {
             isEmiAmountChanged = true;
         }
 
-        if (isRepaymentScheduleRegenerationRequiredForDisbursement(actualDisbursementDate) || recalculateSchedule || isEmiAmountChanged) {
+        if (isRepaymentScheduleRegenerationRequiredForDisbursement(actualDisbursementDate) || recalculateSchedule 
+        		|| isEmiAmountChanged || updateOriginalScheduleIfRepaymentDateChanged) {
             regenerateRepaymentSchedule(scheduleGeneratorDTO, currentUser);
         }
     }

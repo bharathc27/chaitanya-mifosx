@@ -169,17 +169,17 @@ public class Calendar extends AbstractAuditableCustom<AppUser, Long> {
                 firstReminder, secondReminder);
     }
 
-    public Map<String, Object> updateStartDateAndDerivedFeilds(final LocalDate newMeetingStartDate) {
+    public Map<String, Object> updateStartDateAndDerivedFeilds(final LocalDate newMeetingStartDate, LocalDate presentMeetingDate) {
 
         final Map<String, Object> actualChanges = new LinkedHashMap<>(9);
 
         final LocalDate currentDate = DateUtils.getLocalDateOfTenant();
 
-        if (newMeetingStartDate.isBefore(currentDate)) {
-            final String defaultUserMessage = "New meeting effective from date cannot be in past";
-            throw new CalendarDateException("new.start.date.cannot.be.in.past", defaultUserMessage, newMeetingStartDate,
+        if (newMeetingStartDate.isBefore(presentMeetingDate) || newMeetingStartDate.equals(presentMeetingDate)) {
+            final String defaultUserMessage = "New meeting effective from date cannot be a date before selected date";
+            throw new CalendarDateException("new.start.date.cannot.be.before.or.equals.to.selected.date", defaultUserMessage, newMeetingStartDate,
                     getStartDateLocalDate());
-        } else if (isStartDateAfter(newMeetingStartDate) && isStartDateBeforeOrEqual(currentDate)) {
+        } else if (isStartDateAfter(newMeetingStartDate) && isStartDateBeforeOrEqual(presentMeetingDate)) {
             // new meeting date should be on or after start date or current
             // date
             final String defaultUserMessage = "New meeting effective from date cannot be a date before existing meeting start date";

@@ -32,6 +32,7 @@ import org.springframework.util.CollectionUtils;
 public class CalendarReadPlatformServiceImpl implements CalendarReadPlatformService {
 
     private final JdbcTemplate jdbcTemplate;
+    public boolean isLastTransaction = false;
 
     @Autowired
     public CalendarReadPlatformServiceImpl(final RoutingDataSource dataSource) {
@@ -300,10 +301,24 @@ public class CalendarReadPlatformServiceImpl implements CalendarReadPlatformServ
     @Override
     public Collection<LocalDate> generateNextTenRecurringDates(CalendarData calendarData) {
         final LocalDate tillDate = null;
-        return generateRecurringDate(calendarData, DateUtils.getLocalDateOfTenant(), tillDate, 10);
+        final String lastTransactionDate = retriveCalendarInstanceByCalendarId(calendarData.getId()); 
+        LocalDate lastTransctionDate = new LocalDate(lastTransactionDate);
+        LocalDate date = null;
+        if(lastTransactionDate != null){
+        	isLastTransaction = true;
+        	if(calendarData.getStartDate().isAfter(lastTransctionDate) && !calendarData.getStartDate().equals(lastTransctionDate)){
+        		date = calendarData.getStartDate();
+        	}else{
+        		date = lastTransctionDate;
+        	}
+        }else{
+        	date = DateUtils.getLocalDateOfTenant();
+        	isLastTransaction = false;
+        }
+        return generateRecurringDate(calendarData, date, tillDate, 10);
     }
 
-    private Collection<LocalDate> generateRecurringDate(final CalendarData calendarData, final LocalDate fromDate,
+   private Collection<LocalDate> generateRecurringDate(final CalendarData calendarData, final LocalDate fromDate,
             final LocalDate tillDate, final int maxCount) {
 
         if (!calendarData.isRepeating()) { return null; }
@@ -556,4 +571,42 @@ public class CalendarReadPlatformServiceImpl implements CalendarReadPlatformServ
                     lastUpdatedByUserName);
         }
     }
+    
+    private String retriveCalendarInstanceByCalendarId(Long calendarId) {
+    	String lastTransactionDate = null;
+
+    	try{
+    	final String sql = "select max(a.tid) from (select ci.calendar_id cid,t.loan_id loan_id,max(t.transaction_date) tid from m_loan_transaction t "+
+	    	"inner join m_loan m on m.id = t.loan_id and m.loan_status_id in (100,200,300) "+
+	    	"inner join m_calendar_instance ci on ci.entity_id = m.id and ci.entity_type_enum = "+CalendarEntityType.LOANS.getValue()+" "+
+	    	"where t.transaction_type_enum = 2 "+ 
+	    	"and t.is_reversed=0 and ci.calendar_id = "+calendarId+" group by m.id) a ";
+
+    	lastTransactionDate =  this.jdbcTemplate.queryForObject(sql, String.class);
+    	}catch(final EmptyResultDataAccessException e) {
+    	    return null;
+    	}
+     	return lastTransactionDate;
+
+	}
+
+	@Override
+	public Collection<LocalDate> generateMeetingDatesAfterLastTransactionDate(CalendarData calendarData ,
+			Collection<LocalDate> nextTenRecurringDates) {
+		final Collection<LocalDate> list = new ArrayList<LocalDate>();
+		int i = 0;
+		if(isLastTransaction){
+			for (LocalDate date : nextTenRecurringDates) {
+				/*if(calendarData.getStartDate().equals(date) && !calendarData.getStartDate().equals(date)){
+					return nextTenRecurringDates;
+				}else*/ if (i > 0) {
+					list.add(date);
+				}
+				i++;
+			}
+		}else{
+			return nextTenRecurringDates;
+		}
+		return list;
+	}
 }
