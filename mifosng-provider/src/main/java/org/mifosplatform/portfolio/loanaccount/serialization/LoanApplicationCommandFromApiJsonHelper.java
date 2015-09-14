@@ -173,7 +173,7 @@ public final class LoanApplicationCommandFromApiJsonHelper {
         final String loanPurposeIdParameterName = "loanPurposeId";
         if (this.fromApiJsonHelper.parameterExists(loanPurposeIdParameterName, element)) {
             final Long loanPurposeId = this.fromApiJsonHelper.extractLongNamed(loanPurposeIdParameterName, element);
-            baseDataValidator.reset().parameter(loanPurposeIdParameterName).value(loanPurposeId).ignoreIfNull().integerGreaterThanZero();
+            baseDataValidator.reset().parameter(loanPurposeIdParameterName).value(loanPurposeId).notNull().notBlank().integerGreaterThanZero();
         }
 
         final BigDecimal principal = this.fromApiJsonHelper.extractBigDecimalWithLocaleNamed("principal", element);
@@ -254,7 +254,7 @@ public final class LoanApplicationCommandFromApiJsonHelper {
         if (this.fromApiJsonHelper.parameterExists(repaymentsStartingFromDateParameterName, element)) {
             final LocalDate repaymentsStartingFromDate = this.fromApiJsonHelper.extractLocalDateNamed(
                     repaymentsStartingFromDateParameterName, element);
-            baseDataValidator.reset().parameter(repaymentsStartingFromDateParameterName).value(repaymentsStartingFromDate).ignoreIfNull()
+            baseDataValidator.reset().parameter(repaymentsStartingFromDateParameterName).value(repaymentsStartingFromDate).notBlank()
                     .notNull();
         }
 
@@ -599,7 +599,7 @@ public final class LoanApplicationCommandFromApiJsonHelper {
             atLeastOneParameterPassedForUpdate = true;
             final LocalDate repaymentsStartingFromDate = this.fromApiJsonHelper.extractLocalDateNamed(
                     repaymentsStartingFromDateParameterName, element);
-            baseDataValidator.reset().parameter(repaymentsStartingFromDateParameterName).value(repaymentsStartingFromDate).ignoreIfNull();
+            baseDataValidator.reset().parameter(repaymentsStartingFromDateParameterName).value(repaymentsStartingFromDate).notBlank();
         }
 
         final String submittedOnDateParameterName = "submittedOnDate";

@@ -5538,12 +5538,29 @@ public class Loan extends AbstractPersistable<Long> {
                 }
             	actualDisbursementDate = currentTransactionDate;
             	boolean undoDisburseAllTranches = false;
-               	for(LoanDisbursementDetails disbursementDetail : this.disbursementDetails){
-            		if(disbursementDetail.actualDisbursementDate().equals(actualDisbursementDate.toDate())){
-            			undoDisburseAllTranches = true;
-            		}
-            		break;
-            	}
+
+			List<LocalDate> lastDisbursementDate = new ArrayList<>();
+			Set<LoanDisbursementDetails> loanDisbursementDetails = this.disbursementDetails;
+			for (LoanDisbursementDetails disbursementDetail : loanDisbursementDetails) {
+				lastDisbursementDate.add(new LocalDate(disbursementDetail
+						.actualDisbursementDate()));
+			}
+			Collections.sort(lastDisbursementDate);
+			for (LocalDate lastDisbursementDates : lastDisbursementDate) {
+				if (lastDisbursementDates.equals(actualDisbursementDate)) {
+					undoDisburseAllTranches = true;
+				}
+				break;
+			}
+            	/*Set<LoanDisbursementDetails> loanDisbursementDetails = this.disbursementDetails;*/
+               /* List<DisbursementData> disbursementDetails = getDisbursmentData();
+                Collections.reverse(disbursementDetails);
+                for(DisbursementData disbursementDetail : disbursementDetails){
+	                if(disbursementDetail.actualDisbursementDate().equals(actualDisbursementDate)){
+	                	undoDisburseAllTranches = true;
+	               	}
+               	break;
+               	}*/
             	if(undoDisburseAllTranches){
             		this.loanStatus = statusEnum.getValue();
                 	actualChanges.put("status", LoanEnumerations.status(this.loanStatus));

@@ -68,5 +68,9 @@ public class DisbursementData implements Comparable<DisbursementData> {
             final LocalDate target) {
         return target != null && target.isAfter(fromNotInclusive) && !target.isAfter(upToAndInclusive);
     }
+    
+    public LocalDate actualDisbursementDate(){
+       	return this.actualDisbursementDate;
+    }
 
 }
