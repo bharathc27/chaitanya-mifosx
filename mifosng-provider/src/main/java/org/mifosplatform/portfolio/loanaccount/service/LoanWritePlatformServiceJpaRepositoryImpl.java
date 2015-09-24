@@ -40,7 +40,6 @@ import org.mifosplatform.infrastructure.jobs.service.JobName;
 import org.mifosplatform.infrastructure.security.service.PlatformSecurityContext;
 import org.mifosplatform.organisation.holiday.domain.Holiday;
 import org.mifosplatform.organisation.holiday.domain.HolidayRepositoryWrapper;
-import org.mifosplatform.organisation.holiday.domain.HolidayStatusType;
 import org.mifosplatform.organisation.monetary.domain.ApplicationCurrency;
 import org.mifosplatform.organisation.monetary.domain.ApplicationCurrencyRepositoryWrapper;
 import org.mifosplatform.organisation.monetary.domain.MonetaryCurrency;
@@ -287,9 +286,8 @@ public class LoanWritePlatformServiceJpaRepositoryImpl implements LoanWritePlatf
         checkClientOrGroupActive(loan);
         
         final LocalDate nextRepaymentDate = command.localDateValueOfParameterNamed("nextRepaymentDate");
-        final LocalDate disbursementDate = command.localDateValueOfParameterNamed("actualDisbursementDate");
         final Date adjustRepaymentDate = command.DateValueOfParameterNamed("adjustRepaymentDate");
-        this.loanEventApiJsonValidator.validateRescheduledRepaymentDate(disbursementDate,adjustRepaymentDate);
+        this.loanEventApiJsonValidator.validateRescheduledRepaymentDate(nextRepaymentDate,adjustRepaymentDate);
         boolean updateOriginalScheduleIfRepaymentDateChanged = false;
         if(adjustRepaymentDate != null){
          updateOriginalScheduleIfRepaymentDateChanged = true;

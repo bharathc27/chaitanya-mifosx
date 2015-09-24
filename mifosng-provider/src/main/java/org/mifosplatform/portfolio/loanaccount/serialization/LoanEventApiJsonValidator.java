@@ -435,14 +435,14 @@ public final class LoanEventApiJsonValidator {
         throwExceptionIfValidationWarningsExist(dataValidationErrors);
     }
     
-    public void validateRescheduledRepaymentDate(LocalDate disbursementDate, Date adjustRepaymentDate) {
+    public void validateRescheduledRepaymentDate(LocalDate nextRepaymentDate, Date adjustRepaymentDate) {
     	String defaultUserMessage = "";
     	if(adjustRepaymentDate != null){
     	final LocalDate newRescheduledRepaymentDate = new LocalDate(adjustRepaymentDate);
-	    	if(newRescheduledRepaymentDate.isEqual(disbursementDate) || newRescheduledRepaymentDate.isBefore(disbursementDate)){
+	    	if(newRescheduledRepaymentDate.isEqual(nextRepaymentDate) || newRescheduledRepaymentDate.isBefore(nextRepaymentDate)){
 	    	  defaultUserMessage = "rescheduledRepaymentDate cannot be before the nextRepaymentDate.";
 	    	           throw new RescheduleRepaymentDateException("rescheduled.repayment.date.cannot.be.before.the.next.repayment.date", defaultUserMessage,
-	    	            adjustRepaymentDate.toString(), disbursementDate.toString());
+	    	            adjustRepaymentDate.toString(), nextRepaymentDate.toString());
 	       }
        }
 
