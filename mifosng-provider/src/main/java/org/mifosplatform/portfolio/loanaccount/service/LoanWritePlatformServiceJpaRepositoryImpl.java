@@ -3135,6 +3135,10 @@ public class LoanWritePlatformServiceJpaRepositoryImpl implements LoanWritePlatf
 
 	        final Map<String, Object> changes = loan.undoLastDisbursal(scheduleGeneratorDTO, existingTransactionIds,
 	                existingReversedTransactionIds, currentUser);
+	        if (loan.repaymentScheduleDetail().isInterestRecalculationEnabled()) {
+                this.loanScheduleHistoryWritePlatformService.createAndSaveLoanScheduleArchive(loan.fetchRepaymentScheduleInstallments(),
+                        loan, null);
+            }
 	      
 	        if (!changes.isEmpty()) {
 	            saveAndFlushLoanWithDataIntegrityViolationChecks(loan);

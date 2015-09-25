@@ -2748,6 +2748,7 @@ public class Loan extends AbstractPersistable<Long> {
                     details.updateActualDisbursementDate(null);
                 }
             }
+            this.loanRescheduleRequests.clear();
             boolean isEmiAmountChanged = this.loanTermVariations.size() > 0;
             updateLoanToPreDisbursalState();
             if (isScheduleRegenerateRequired || isDisbursedAmountChanged || isEmiAmountChanged
@@ -5552,22 +5553,15 @@ public class Loan extends AbstractPersistable<Long> {
 				}
 				break;
 			}
-            	/*Set<LoanDisbursementDetails> loanDisbursementDetails = this.disbursementDetails;*/
-               /* List<DisbursementData> disbursementDetails = getDisbursmentData();
-                Collections.reverse(disbursementDetails);
-                for(DisbursementData disbursementDetail : disbursementDetails){
-	                if(disbursementDetail.actualDisbursementDate().equals(actualDisbursementDate)){
-	                	undoDisburseAllTranches = true;
-	               	}
-               	break;
-               	}*/
-            	if(undoDisburseAllTranches){
-            		this.loanStatus = statusEnum.getValue();
-                	actualChanges.put("status", LoanEnumerations.status(this.loanStatus));
-                	actualChanges.put("actualDisbursementDate", "");
-                	this.actualDisbursementDate = null;
-                    this.disbursedBy = null;
-            	}
+          
+        	if(undoDisburseAllTranches){
+        		this.loanStatus = statusEnum.getValue();
+            	actualChanges.put("status", LoanEnumerations.status(this.loanStatus));
+            	actualChanges.put("actualDisbursementDate", "");
+            	this.actualDisbursementDate = null;
+                this.disbursedBy = null;
+                this.accruedTill = null;
+        	}
             
             final boolean isScheduleRegenerateRequired = isRepaymentScheduleRegenerationRequiredForDisbursement(actualDisbursementDate);
             boolean isDisbursedAmountChanged = !this.approvedPrincipal.equals(this.loanRepaymentScheduleDetail.getPrincipal());
@@ -5577,6 +5571,13 @@ public class Loan extends AbstractPersistable<Long> {
             	}
                 
             }
+			for (Iterator<LoanRescheduleRequest> iterator = this.loanRescheduleRequests().iterator(); iterator.hasNext();) {
+				LoanRescheduleRequest loanRescheduleRequest = iterator.next();
+				if (loanRescheduleRequest.getRescheduleFromDate().isAfter(
+						actualDisbursementDate)) {
+					iterator.remove();
+				}
+			}
             boolean isEmiAmountChanged = this.loanTermVariations.size() > 0;
             updateLoanToPreLastDisbursalState(actualDisbursementDate);
             if (isScheduleRegenerateRequired || isDisbursedAmountChanged || isEmiAmountChanged
@@ -5596,7 +5597,6 @@ public class Loan extends AbstractPersistable<Long> {
 
             existingTransactionIds.addAll(findExistingTransactionIds());
             existingReversedTransactionIds.addAll(findExistingReversedTransactionIds());
-            this.accruedTill = null;
             reverseExistingTransactionsTillLastDisbursal(actualDisbursementDate, undoDisburseAllTranches);
             updateLoanSummaryDerivedFields();
 

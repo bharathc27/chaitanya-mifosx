@@ -343,10 +343,10 @@ public class Calendar extends AbstractAuditableCustom<AppUser, Long> {
              * calendar then do not allow to change meeting interval
              */
 
-            if (areActiveEntitiesSynced && !CalendarUtils.isIntervalSame(this.recurrence, newRecurrence)) {
+           /* if (areActiveEntitiesSynced && !CalendarUtils.isIntervalSame(this.recurrence, newRecurrence)) {
                 final String defaultUserMessage = "Update of meeting interval is not supported";
                 throw new CalendarParameterUpdateNotSupportedException("meeting.interval", defaultUserMessage);
-            }
+            }*/
 
             actualChanges.put("recurrence", newRecurrence);
             this.recurrence = StringUtils.defaultIfEmpty(newRecurrence, null);
