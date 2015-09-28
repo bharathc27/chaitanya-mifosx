@@ -1726,7 +1726,6 @@ public class LoanReadPlatformServiceImpl implements LoanReadPlatformService {
         try {
             return this.jdbcTemplate.queryForList(sqlBuilder.toString(), Long.class,
                     new Object[] { LoanStatus.ACTIVE.getValue(), formatter.print(LocalDate.now()), formatter.print(LocalDate.now()) });
-        	/*return this.jdbcTemplate.queryForList(sqlBuilder.toString(), Long.class);*/
         } catch (final EmptyResultDataAccessException e) {
             return null;
         }

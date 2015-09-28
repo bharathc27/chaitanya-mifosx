@@ -2917,7 +2917,7 @@ public class LoanWritePlatformServiceJpaRepositoryImpl implements LoanWritePlatf
         return transaction;
     }
 
-/*    @Override
+    @Override
     @CronTarget(jobName = JobName.RECALCULATE_INTEREST_FOR_LOAN)
     public void recalculateInterest() {
         Collection<Long> loanIds = this.loanReadPlatformService.fetchArrearLoans();
@@ -2925,7 +2925,7 @@ public class LoanWritePlatformServiceJpaRepositoryImpl implements LoanWritePlatf
             recalculateInterest(loanId);
         }
     }
-*/
+
     @Transactional
     @Override
     public void recalculateInterest(final long loanId) {

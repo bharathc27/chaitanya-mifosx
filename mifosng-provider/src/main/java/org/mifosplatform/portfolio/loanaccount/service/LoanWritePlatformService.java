@@ -82,7 +82,7 @@ public interface LoanWritePlatformService {
 
     CommandProcessingResult updateDisbursementDateAndAmountForTranche(Long loanId, Long disbursementId, JsonCommand command);
 
- //   void recalculateInterest();
+    void recalculateInterest();
 
     CommandProcessingResult recoverFromGuarantor(Long loanId);
 

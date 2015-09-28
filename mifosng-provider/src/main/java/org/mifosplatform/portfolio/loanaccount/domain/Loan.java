@@ -5537,14 +5537,15 @@ public class Loan extends AbstractPersistable<Long> {
                         break;
                     }
                 }
-            	actualDisbursementDate = currentTransactionDate;
-            	boolean undoDisburseAllTranches = false;
-
+            actualDisbursementDate = currentTransactionDate;
+            boolean undoDisburseAllTranches = false;
 			List<LocalDate> lastDisbursementDate = new ArrayList<>();
 			Set<LoanDisbursementDetails> loanDisbursementDetails = this.disbursementDetails;
 			for (LoanDisbursementDetails disbursementDetail : loanDisbursementDetails) {
-				lastDisbursementDate.add(new LocalDate(disbursementDetail
-						.actualDisbursementDate()));
+				if(disbursementDetail.actualDisbursementDate() != null){
+					lastDisbursementDate.add(new LocalDate(disbursementDetail.actualDisbursementDate()));
+				}
+				
 			}
 			Collections.sort(lastDisbursementDate);
 			for (LocalDate lastDisbursementDates : lastDisbursementDate) {
@@ -5573,8 +5574,7 @@ public class Loan extends AbstractPersistable<Long> {
             }
 			for (Iterator<LoanRescheduleRequest> iterator = this.loanRescheduleRequests().iterator(); iterator.hasNext();) {
 				LoanRescheduleRequest loanRescheduleRequest = iterator.next();
-				if (loanRescheduleRequest.getRescheduleFromDate().isAfter(
-						actualDisbursementDate)) {
+				if (loanRescheduleRequest.getRescheduleFromDate().isAfter(actualDisbursementDate)) {
 					iterator.remove();
 				}
 			}
