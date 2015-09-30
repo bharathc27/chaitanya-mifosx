@@ -2209,6 +2209,10 @@ public class LoanWritePlatformServiceJpaRepositoryImpl implements LoanWritePlatf
                      loan.updateLoanRepaymentScheduleDates(calendar.getStartDateLocalDate(), calendar.getRecurrence(), isHolidayEnabled,
                              holidays, workingDays);
                  }
+                 if (loan.repaymentScheduleDetail().isInterestRecalculationEnabled()) {
+                     this.loanScheduleHistoryWritePlatformService.createAndSaveLoanScheduleArchive(loan.fetchRepaymentScheduleInstallments(),
+                             loan, null);
+                 }
                
                 saveLoanWithDataIntegrityViolationChecks(loan);
             }
