@@ -5554,7 +5554,8 @@ public class Loan extends AbstractPersistable<Long> {
 				}
 				break;
 			}
-          
+
+			actualChanges.put("undoLastDisbursement","true");
         	if(undoDisburseAllTranches){
         		this.loanStatus = statusEnum.getValue();
             	actualChanges.put("status", LoanEnumerations.status(this.loanStatus));
