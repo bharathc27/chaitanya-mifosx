@@ -2221,9 +2221,10 @@ public class LoanWritePlatformServiceJpaRepositoryImpl implements LoanWritePlatf
                  if (loan.repaymentScheduleDetail().isInterestRecalculationEnabled()) {
                 	 ScheduleGeneratorDTO scheduleGeneratorDTO = loanAccountDomainService.buildScheduleGeneratorDTO(loan);
                      loan.setHelpers(null, this.loanSummaryWrapper, this.transactionProcessingStrategy);
-                     loan.regenerateRepaymentScheduleWithInterestRecalculation(scheduleGeneratorDTO, currentUser);
+                     loan.regenerateRepaymentSchedule(scheduleGeneratorDTO, currentUser);
                      this.loanScheduleHistoryWritePlatformService.createAndSaveLoanScheduleArchive(loan.fetchRepaymentScheduleInstallments(),
                              loan, null);
+                     loan.regenerateRepaymentScheduleWithInterestRecalculation(scheduleGeneratorDTO, currentUser);
                  }
                
                 saveLoanWithDataIntegrityViolationChecks(loan);

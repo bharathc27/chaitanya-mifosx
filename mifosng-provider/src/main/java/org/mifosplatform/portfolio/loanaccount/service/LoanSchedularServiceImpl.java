@@ -107,7 +107,9 @@ public class LoanSchedularServiceImpl implements LoanSchedularService {
 				.getMaxIntervalBetweenRetries();
 		Collection<Long> loanIds = this.loanReadPlatformService
 				.fetchArrearLoans();
+		int i = 0;
 		for (Long loanId : loanIds) {
+			logger.info("Loan ID " + loanId);
 			Integer numberOfRetries = 0;
 			while (numberOfRetries <= maxNumberOfRetries) {
 				try {
@@ -141,7 +143,9 @@ public class LoanSchedularServiceImpl implements LoanSchedularService {
 					}
 				}
 			}
+			i++;
 		}
+		logger.info("Loans count " + i);
 	}
 
 }
