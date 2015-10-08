@@ -11,6 +11,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.joda.time.LocalDate;
+import org.mifosplatform.infrastructure.core.service.ThreadLocalContextUtil;
 import org.mifosplatform.infrastructure.jobs.annotation.CronTarget;
 import org.mifosplatform.infrastructure.jobs.exception.JobExecutionException;
 import org.mifosplatform.infrastructure.jobs.service.JobName;
@@ -65,6 +66,7 @@ public class LoanAccrualPlatformServiceImpl implements LoanAccrualPlatformServic
     @Override
     @CronTarget(jobName = JobName.ADD_PERIODIC_ACCRUAL_ENTRIES)
     public void addPeriodicAccruals() throws JobExecutionException {
+    	ThreadLocalContextUtil.setIgnoreAccountClosureCheck(true);
         String errors = addPeriodicAccruals(LocalDate.now());
         if (errors.length() > 0) { throw new JobExecutionException(errors); }
     }

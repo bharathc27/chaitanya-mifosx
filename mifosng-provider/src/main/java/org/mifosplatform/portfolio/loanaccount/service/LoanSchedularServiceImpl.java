@@ -100,7 +100,7 @@ public class LoanSchedularServiceImpl implements LoanSchedularService {
 	@Override
 	@CronTarget(jobName = JobName.RECALCULATE_INTEREST_FOR_LOAN)
 	public void recalculateInterest() {
-
+		ThreadLocalContextUtil.setIgnoreAccountClosureCheck(true);
 		Integer maxNumberOfRetries = ThreadLocalContextUtil.getTenant()
 				.getMaxRetriesOnDeadlock();
 		Integer maxIntervalBetweenRetries = ThreadLocalContextUtil.getTenant()
