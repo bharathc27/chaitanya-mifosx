@@ -1712,7 +1712,8 @@ public class LoanReadPlatformServiceImpl implements LoanReadPlatformService {
     @Override
     public Collection<Long> fetchArrearLoans() {
         StringBuilder sqlBuilder = new StringBuilder();
-        sqlBuilder.append("SELECT ml.id FROM m_loan ml ");
+     //   sqlBuilder.append("SELECT ml.id FROM m_loan ml where ml.id = 90431 ");
+       sqlBuilder.append("SELECT ml.id FROM m_loan ml ");
         sqlBuilder.append(" INNER JOIN m_loan_repayment_schedule mr on mr.loan_id = ml.id ");
         sqlBuilder.append(" LEFT JOIN m_loan_disbursement_detail dd on dd.loan_id=ml.id and dd.disbursedon_date is null ");
         sqlBuilder.append(" WHERE ml.loan_status_id = ? ");
@@ -1726,7 +1727,7 @@ public class LoanReadPlatformServiceImpl implements LoanReadPlatformService {
         try {
             return this.jdbcTemplate.queryForList(sqlBuilder.toString(), Long.class,
                     new Object[] { LoanStatus.ACTIVE.getValue(), formatter.print(LocalDate.now()), formatter.print(LocalDate.now()) });
-        	
+      //      return this.jdbcTemplate.queryForList(sqlBuilder.toString(), Long.class);
         } catch (final EmptyResultDataAccessException e) {
             return null;
         }

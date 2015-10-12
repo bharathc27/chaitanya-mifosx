@@ -19,6 +19,7 @@ import static org.mifosplatform.portfolio.collectionsheet.CollectionSheetConstan
 import static org.mifosplatform.portfolio.collectionsheet.CollectionSheetConstants.noteParamName;
 import static org.mifosplatform.portfolio.collectionsheet.CollectionSheetConstants.savingsIdParamName;
 import static org.mifosplatform.portfolio.collectionsheet.CollectionSheetConstants.transactionAmountParamName;
+import static org.mifosplatform.portfolio.collectionsheet.CollectionSheetConstants.meetingDateParamName;
 import static org.mifosplatform.portfolio.collectionsheet.CollectionSheetConstants.transactionDateParamName;
 
 import java.lang.reflect.Type;
@@ -70,6 +71,9 @@ public class CollectionSheetTransactionDataValidator {
 
         final LocalDate transactionDate = this.fromApiJsonHelper.extractLocalDateNamed(transactionDateParamName, element);
         baseDataValidator.reset().parameter(transactionDateParamName).value(transactionDate).notNull();
+        
+        final LocalDate meetingDate = this.fromApiJsonHelper.extractLocalDateNamed(meetingDateParamName, element);
+        baseDataValidator.reset().parameter(meetingDateParamName).value(meetingDate).notNull();
 
         final String note = this.fromApiJsonHelper.extractStringNamed(noteParamName, element);
         if (StringUtils.isNotBlank(note)) {

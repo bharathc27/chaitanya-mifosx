@@ -260,7 +260,7 @@ public class MeetingWritePlatformServiceJpaRepositoryImpl implements MeetingWrit
 
     @Override
     public void updateCollectionSheetAttendance(final JsonCommand command) {
-        final Date meetingDate = command.DateValueOfParameterNamed(transactionDateParamName);
+        final Date meetingDate = command.DateValueOfParameterNamed(meetingDateParamName);
 
         try {
             final CalendarInstance calendarInstance = getCalendarInstance(command);
