@@ -49,6 +49,7 @@ import org.mifosplatform.portfolio.loanaccount.domain.LoanCharge;
 import org.mifosplatform.portfolio.loanaccount.domain.LoanInstallmentCharge;
 import org.mifosplatform.portfolio.loanaccount.domain.LoanLifecycleStateMachine;
 import org.mifosplatform.portfolio.loanaccount.domain.LoanRepaymentScheduleInstallment;
+import org.mifosplatform.portfolio.loanaccount.domain.LoanRepaymentScheduleTransactionProcessorFactory;
 import org.mifosplatform.portfolio.loanaccount.domain.LoanRepository;
 import org.mifosplatform.portfolio.loanaccount.domain.LoanRepositoryWrapper;
 import org.mifosplatform.portfolio.loanaccount.domain.LoanStatus;
@@ -105,6 +106,8 @@ public class LoanRescheduleRequestWritePlatformServiceImpl implements LoanResche
     private final JournalEntryWritePlatformService journalEntryWritePlatformService;
     private final LoanRepository loanRepository;
     private final LoanAssembler loanAssembler;
+    private final LoanSummaryWrapper loanSummaryWrapper;
+    private final LoanRepaymentScheduleTransactionProcessorFactory transactionProcessingStrategy;
 
     /**
      * LoanRescheduleRequestWritePlatformServiceImpl constructor
@@ -124,7 +127,8 @@ public class LoanRescheduleRequestWritePlatformServiceImpl implements LoanResche
             final LoanChargeReadPlatformService loanChargeReadPlatformService, final LoanScheduleGeneratorFactory loanScheduleFactory,
             final LoanTransactionRepository loanTransactionRepository,
             final JournalEntryWritePlatformService journalEntryWritePlatformService, final LoanRepository loanRepository,
-            final LoanAssembler loanAssembler) {
+            final LoanAssembler loanAssembler, final LoanSummaryWrapper loanSummaryWrapper,
+            final LoanRepaymentScheduleTransactionProcessorFactory transactionProcessingStrategy) {
         this.loanRepositoryWrapper = loanRepositoryWrapper;
         this.codeValueRepositoryWrapper = codeValueRepositoryWrapper;
         this.platformSecurityContext = platformSecurityContext;
@@ -144,6 +148,8 @@ public class LoanRescheduleRequestWritePlatformServiceImpl implements LoanResche
         this.journalEntryWritePlatformService = journalEntryWritePlatformService;
         this.loanRepository = loanRepository;
         this.loanAssembler = loanAssembler;
+        this.loanSummaryWrapper = loanSummaryWrapper;
+        this.transactionProcessingStrategy = transactionProcessingStrategy;
     }
 
     /**
@@ -408,7 +414,15 @@ public class LoanRescheduleRequestWritePlatformServiceImpl implements LoanResche
                 for (final LoanRepaymentScheduleInstallment repaymentScheduleInstallment : repaymentScheduleInstallments) {
                     repaymentScheduleInstallment.updateDerivedFields(currency, new LocalDate());
                 }
-
+                if (loan.repaymentScheduleDetail().isInterestRecalculationEnabled()) {
+                    ScheduleGeneratorDTO scheduleGeneratorDTO = loanAccountDomainService.buildScheduleGeneratorDTO(loan);
+                         loan.setHelpers(null, this.loanSummaryWrapper, this.transactionProcessingStrategy);
+                         loan.regenerateRepaymentSchedule(scheduleGeneratorDTO, appUser);
+                         this.loanScheduleHistoryWritePlatformService.createAndSaveLoanScheduleArchive(loan.fetchRepaymentScheduleInstallments(),
+                                 loan, null);
+                         loan.regenerateRepaymentScheduleWithInterestRecalculation(scheduleGeneratorDTO, appUser);
+                         
+                }
                 // update the loan object
                 this.loanRepository.save(loan);
             }
