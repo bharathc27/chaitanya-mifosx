@@ -57,18 +57,17 @@ public class SynchronousCommandProcessingService implements CommandProcessingSer
         this.configurationDomainService = configurationDomainService;
         this.commandHandlerProvider = commandHandlerProvider;
     }
-
+    @Transactional
     @Override
-	public CommandProcessingResult processAndLogCommand(
+	public CommandProcessingResult processAndLogCommand1(
 			CommandWrapper wrapper, JsonCommand command,
 			boolean isApprovedByChecker) {
 		// TODO Auto-generated method stub
-		return processAndLogCommand1(wrapper, command, isApprovedByChecker);
+		return processAndLogCommand(wrapper, command, isApprovedByChecker);
 	}
     
-    @Transactional
     @Override
-    public CommandProcessingResult processAndLogCommand1(final CommandWrapper wrapper, final JsonCommand command,
+    public CommandProcessingResult processAndLogCommand(final CommandWrapper wrapper, final JsonCommand command,
             final boolean isApprovedByChecker) {
 
         final boolean rollbackTransaction = this.configurationDomainService.isMakerCheckerEnabledForTask(wrapper.taskPermissionName());

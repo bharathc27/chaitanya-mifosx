@@ -83,9 +83,9 @@ public class PortfolioCommandSourceWritePlatformServiceImpl implements Portfolio
         while (numberOfRetries <= maxNumberOfRetries) {
             try {
             	if(wrapper.isPeriodicAccrualResource() && wrapper.isExecute()){
-            		result = this.processAndLogCommandService.processAndLogCommand1(wrapper, command, isApprovedByChecker);	
+            		result = this.processAndLogCommandService.processAndLogCommand(wrapper, command, isApprovedByChecker);	
             	}else{
-            		result = this.processAndLogCommandService.processAndLogCommand(wrapper, command, isApprovedByChecker);
+            		result = this.processAndLogCommandService.processAndLogCommand1(wrapper, command, isApprovedByChecker);
             	}
                 numberOfRetries = maxNumberOfRetries + 1;
             } catch (CannotAcquireLockException | ObjectOptimisticLockingFailureException exception) {

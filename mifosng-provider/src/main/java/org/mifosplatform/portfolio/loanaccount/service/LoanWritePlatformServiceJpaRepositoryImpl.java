@@ -2840,7 +2840,9 @@ public class LoanWritePlatformServiceJpaRepositoryImpl implements LoanWritePlatf
             createLoanScheduleArchive(loan, scheduleGeneratorDTO);
         }
         postJournalEntries(loan, existingTransactionIds, existingReversedTransactionIds);
+        if(command.DateValueOfParameterNamed("updatedDisbursementDateParameterName").before(new Date())){
         this.loanAccountDomainService.recalculateAccruals(loan);
+        }
         return new CommandProcessingResultBuilder() //
                 .withOfficeId(loan.getOfficeId()) //
                 .withClientId(loan.getClientId()) //
