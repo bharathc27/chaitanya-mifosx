@@ -60,7 +60,6 @@ public class LoanAccrualWritePlatformServiceImpl implements LoanAccrualWritePlat
     }
 
     @Override
-    @Transactional
     public void addAccrualAccounting(final Long loanId, final Collection<LoanScheduleAccrualData> loanScheduleAccrualDatas)
             throws Exception {
         Collection<LoanChargeData> chargeData = this.loanChargeReadPlatformService.retrieveLoanChargesForAccural(loanId);
@@ -274,6 +273,7 @@ public class LoanAccrualWritePlatformServiceImpl implements LoanAccrualWritePlat
             String updateLoan = "UPDATE m_loan  SET accrued_till=?  WHERE  id=?";
             this.jdbcTemplate.update(updateLoan, accruedTill.toDate(), scheduleAccrualData.getLoanId());
             final Map<String, Object> accountingBridgeData = deriveAccountingBridgeData(scheduleAccrualData, transactionMap);
+            System.out.println("loan Id processed"+scheduleAccrualData.getLoanId());
             this.journalEntryWritePlatformService.createJournalEntriesForLoan(accountingBridgeData);
         } catch (Exception e) {
             this.transactionManager.rollback(transactionStatus);
