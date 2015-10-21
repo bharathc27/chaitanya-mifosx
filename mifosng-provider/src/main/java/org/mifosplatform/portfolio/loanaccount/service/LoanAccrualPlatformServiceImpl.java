@@ -35,6 +35,7 @@ public class LoanAccrualPlatformServiceImpl implements LoanAccrualPlatformServic
     @Override
     @CronTarget(jobName = JobName.ADD_ACCRUAL_ENTRIES)
     public void addAccrualAccounting() throws JobExecutionException {
+    	ThreadLocalContextUtil.setIgnoreAccountClosureCheck(true);
         Collection<LoanScheduleAccrualData> loanScheduleAccrualDatas = this.loanReadPlatformService.retriveScheduleAccrualData();
         StringBuilder sb = new StringBuilder();
         Map<Long, Collection<LoanScheduleAccrualData>> loanDataMap = new HashMap<>();
@@ -73,6 +74,7 @@ public class LoanAccrualPlatformServiceImpl implements LoanAccrualPlatformServic
 
     @Override
     public String addPeriodicAccruals(final LocalDate tilldate) {
+    	ThreadLocalContextUtil.setIgnoreAccountClosureCheck(true);
         Collection<LoanScheduleAccrualData> loanScheduleAccrualDatas = this.loanReadPlatformService.retrivePeriodicAccrualData(tilldate);
         return addPeriodicAccruals(tilldate, loanScheduleAccrualDatas);
     }
