@@ -17,6 +17,7 @@ import org.mifosplatform.accounting.common.AccountingConstants.FINANCIAL_ACTIVIT
 import org.mifosplatform.accounting.journalentry.data.ChargePaymentDTO;
 import org.mifosplatform.accounting.journalentry.data.LoanDTO;
 import org.mifosplatform.accounting.journalentry.data.LoanTransactionDTO;
+import org.mifosplatform.infrastructure.core.service.ThreadLocalContextUtil;
 import org.mifosplatform.organisation.office.domain.Office;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -37,7 +38,10 @@ public class AccrualBasedAccountingProcessorForLoan implements AccountingProcess
         final Office office = this.helper.getOfficeById(loanDTO.getOfficeId());
         for (final LoanTransactionDTO loanTransactionDTO : loanDTO.getNewLoanTransactions()) {
             final Date transactionDate = loanTransactionDTO.getTransactionDate();
-            this.helper.checkForBranchClosures(latestGLClosure, transactionDate);
+            Boolean isIgnoreAccountClosureCheck = ThreadLocalContextUtil.getIgnoreAccountClosureCheck();
+            if(isIgnoreAccountClosureCheck == null){
+             this.helper.checkForBranchClosures(latestGLClosure, transactionDate);
+            }
 
             /** Handle Disbursements **/
             if (loanTransactionDTO.getTransactionType().isDisbursement()) {

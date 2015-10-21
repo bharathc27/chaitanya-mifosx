@@ -57,8 +57,15 @@ public class SynchronousCommandProcessingService implements CommandProcessingSer
         this.configurationDomainService = configurationDomainService;
         this.commandHandlerProvider = commandHandlerProvider;
     }
-
     @Transactional
+    @Override
+	public CommandProcessingResult processAndLogCommand1(
+			CommandWrapper wrapper, JsonCommand command,
+			boolean isApprovedByChecker) {
+		// TODO Auto-generated method stub
+		return processAndLogCommand(wrapper, command, isApprovedByChecker);
+	}
+    
     @Override
     public CommandProcessingResult processAndLogCommand(final CommandWrapper wrapper, final JsonCommand command,
             final boolean isApprovedByChecker) {
@@ -402,7 +409,9 @@ public class SynchronousCommandProcessingService implements CommandProcessingSer
                 handler = this.applicationContext.getBean("disburseLoanToSavingsCommandHandler", NewCommandSourceHandler.class);
             } else if (wrapper.isUndoDisbursementOfLoan()) {
                 handler = this.applicationContext.getBean("undoDisbursalLoanCommandHandler", NewCommandSourceHandler.class);
-            } else if (wrapper.isLoanRepayment()) {
+            }else if (wrapper.isUndoLastDisbursementOfLoan()) {
+                handler = this.applicationContext.getBean("undoLastDisbursalLoanCommandHandler", NewCommandSourceHandler.class);
+            }else if (wrapper.isLoanRepayment()) {
                 handler = this.applicationContext.getBean("loanRepaymentCommandHandler", NewCommandSourceHandler.class);
             } else if (wrapper.isLoanRecoveryPayment()) {
                 handler = this.applicationContext.getBean("loanRecoveryPaymentCommandHandler", NewCommandSourceHandler.class);
@@ -997,4 +1006,6 @@ public class SynchronousCommandProcessingService implements CommandProcessingSer
 
         applicationContext.publishEvent(applicationEvent);
     }
+
+	
 }

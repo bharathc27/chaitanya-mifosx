@@ -40,6 +40,7 @@ import org.mifosplatform.infrastructure.security.service.PlatformSecurityContext
 import org.mifosplatform.portfolio.calendar.data.CalendarData;
 import org.mifosplatform.portfolio.calendar.domain.Calendar;
 import org.mifosplatform.portfolio.calendar.domain.CalendarEntityType;
+import org.mifosplatform.portfolio.calendar.domain.CalendarInstance;
 import org.mifosplatform.portfolio.calendar.exception.CalendarEntityTypeNotSupportedException;
 import org.mifosplatform.portfolio.calendar.service.CalendarDropdownReadPlatformService;
 import org.mifosplatform.portfolio.calendar.service.CalendarReadPlatformService;
@@ -98,10 +99,12 @@ public class CalendarsApiResource {
         // Include recurring date details
         final boolean withHistory = true;
         final LocalDate tillDate = null;
+        //final Collection<CalendarData> calendarInstance = this.readPlatformService.retriveCalendarInstanceByCalendarId(calendarId,entityTypeId);
         final Collection<LocalDate> recurringDates = this.readPlatformService.generateRecurringDates(calendarData, withHistory, tillDate);
         final Collection<LocalDate> nextTenRecurringDates = this.readPlatformService.generateNextTenRecurringDates(calendarData);
+        final Collection<LocalDate> nextMeetingDatesAfterLastTransactionDate = this.readPlatformService.generateMeetingDatesAfterLastTransactionDate(calendarData, nextTenRecurringDates);
         final LocalDate recentEligibleMeetingDate = null;
-        calendarData = CalendarData.withRecurringDates(calendarData, recurringDates, nextTenRecurringDates, recentEligibleMeetingDate);
+        calendarData = CalendarData.withRecurringDates(calendarData, recurringDates, nextMeetingDatesAfterLastTransactionDate, recentEligibleMeetingDate);
 
         final ApiRequestJsonSerializationSettings settings = this.apiRequestParameterHelper.process(uriInfo.getQueryParameters());
         if (settings.isTemplate()) {

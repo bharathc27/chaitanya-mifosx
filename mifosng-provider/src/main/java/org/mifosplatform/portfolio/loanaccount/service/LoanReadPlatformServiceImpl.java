@@ -1554,7 +1554,7 @@ public class LoanReadPlatformServiceImpl implements LoanReadPlatformService {
                 .append(" where ((ls.fee_charges_amount <> if(ls.accrual_fee_charges_derived is null,0, ls.accrual_fee_charges_derived))")
                 .append(" or (ls.penalty_charges_amount <> if(ls.accrual_penalty_charges_derived is null,0,ls.accrual_penalty_charges_derived))")
                 .append(" or (ls.interest_amount <> if(ls.accrual_interest_derived is null,0,ls.accrual_interest_derived)))")
-                .append("  and loan.loan_status_id=:active and mpl.accounting_type=:type and loan.is_npa=0 and (ls.duedate <= :tilldate or (ls.duedate > :tilldate and ls.fromdate < :tilldate)) order by loan.id,ls.duedate");
+                .append(" and (loan.closedon_date > :tilldate or loan.closedon_date is null) and mpl.accounting_type=:type and loan.is_npa=0 and (ls.duedate <= :tilldate or (ls.duedate > :tilldate and ls.fromdate < :tilldate)) order by loan.id,ls.duedate");
         Map<String, Object> paramMap = new HashMap<>(3);
         paramMap.put("active", LoanStatus.ACTIVE.getValue());
         paramMap.put("type", AccountingRuleType.ACCRUAL_PERIODIC.getValue());
@@ -1712,7 +1712,8 @@ public class LoanReadPlatformServiceImpl implements LoanReadPlatformService {
     @Override
     public Collection<Long> fetchArrearLoans() {
         StringBuilder sqlBuilder = new StringBuilder();
-        sqlBuilder.append("SELECT ml.id FROM m_loan ml ");
+     //   sqlBuilder.append("SELECT ml.id FROM m_loan ml where ml.id = 90431 ");
+       sqlBuilder.append("SELECT ml.id FROM m_loan ml ");
         sqlBuilder.append(" INNER JOIN m_loan_repayment_schedule mr on mr.loan_id = ml.id ");
         sqlBuilder.append(" LEFT JOIN m_loan_disbursement_detail dd on dd.loan_id=ml.id and dd.disbursedon_date is null ");
         sqlBuilder.append(" WHERE ml.loan_status_id = ? ");
@@ -1726,6 +1727,7 @@ public class LoanReadPlatformServiceImpl implements LoanReadPlatformService {
         try {
             return this.jdbcTemplate.queryForList(sqlBuilder.toString(), Long.class,
                     new Object[] { LoanStatus.ACTIVE.getValue(), formatter.print(LocalDate.now()), formatter.print(LocalDate.now()) });
+      //      return this.jdbcTemplate.queryForList(sqlBuilder.toString(), Long.class);
         } catch (final EmptyResultDataAccessException e) {
             return null;
         }

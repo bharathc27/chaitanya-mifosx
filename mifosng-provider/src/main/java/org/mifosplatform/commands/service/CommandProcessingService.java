@@ -13,6 +13,8 @@ import org.mifosplatform.useradministration.domain.AppUser;
 
 public interface CommandProcessingService {
 
+    CommandProcessingResult processAndLogCommand1(CommandWrapper wrapper, JsonCommand command, boolean isApprovedByChecker);
+    
     CommandProcessingResult processAndLogCommand(CommandWrapper wrapper, JsonCommand command, boolean isApprovedByChecker);
 
     CommandProcessingResult logCommand(CommandSource commandSourceResult);

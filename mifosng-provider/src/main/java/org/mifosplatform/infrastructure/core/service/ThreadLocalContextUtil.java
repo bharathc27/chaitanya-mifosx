@@ -20,6 +20,8 @@ public class ThreadLocalContextUtil {
     private static final ThreadLocal<MifosPlatformTenant> tenantcontext = new ThreadLocal<>();
     
     private static final ThreadLocal<String> authTokenContext = new ThreadLocal<>();
+    
+    private static final ThreadLocal<Boolean> ignoreAccountCloureCheckContext = new ThreadLocal<>();
 
     public static void setTenant(final MifosPlatformTenant tenant) {
         Assert.notNull(tenant, "tenant cannot be null");
@@ -53,5 +55,12 @@ public class ThreadLocalContextUtil {
     public static String getAuthToken() {
         return authTokenContext.get();
     }
+
+	public static void setIgnoreAccountClosureCheck(final boolean isIgnoreAccountClosureCheck) {
+		ignoreAccountCloureCheckContext.set(isIgnoreAccountClosureCheck);
+	}
+	public static Boolean getIgnoreAccountClosureCheck(){
+	   	return ignoreAccountCloureCheckContext.get();
+	   }
 
 }
