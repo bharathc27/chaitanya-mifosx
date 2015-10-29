@@ -4746,12 +4746,24 @@ public class Loan extends AbstractPersistable<Long> {
         existingTransactionIds.addAll(findExistingTransactionIds());
         existingReversedTransactionIds.addAll(findExistingReversedTransactionIds());
 
+        if(expectedDisbursementDate.isBefore(getLastUserTransactionDate())){
+           	final String errorMsg = "Loan can't be disbursed before last transaction date ";
+           	throw new LoanDisbursalDateException(errorMsg, "loan.disbursement.cannot.be.made.before.last.transaction.date", expectedDisbursementDate);
+        }
+        
         Collection<LoanDisbursementDetails> loanDisburseDetails = this.getDisbursementDetails();
         BigDecimal setPrincipalAmount = BigDecimal.ZERO;
+        BigDecimal totalAmount = BigDecimal.ZERO;
         for (LoanDisbursementDetails details : loanDisburseDetails) {
             setPrincipalAmount = setPrincipalAmount.add(details.principal());
+            totalAmount = totalAmount.add(setPrincipalAmount);
         }
 
+        if (totalAmount.compareTo(this.approvedPrincipal) == 1) {
+           final String errorMsg = "Loan can't be disbursed,disburse amount is exceeding approved principal ";
+           throw new LoanDisbursalException(errorMsg, "disburse.amount.must.be.less.than.approved.principal", principal,
+                   this.approvedPrincipal);
+        }
         recalculateAllCharges();
         this.loanRepaymentScheduleDetail.setPrincipal(setPrincipalAmount);
         if (this.repaymentScheduleDetail().isInterestRecalculationEnabled()) {

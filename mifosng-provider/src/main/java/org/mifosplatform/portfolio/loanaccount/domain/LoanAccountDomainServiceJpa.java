@@ -501,7 +501,7 @@ public class LoanAccountDomainServiceJpa implements LoanAccountDomainService {
         Set<LoanCharge> loanCharges = loan.charges();
 
         for (LoanRepaymentScheduleInstallment installment : installments) {
-            if (accruedFrom.isBefore(installment.getDueDate()) && !accruedTill.isBefore(installment.getDueDate())
+            if (accruedFrom != null && accruedFrom.isBefore(installment.getDueDate()) && !accruedTill.isBefore(installment.getDueDate())
                     || (accruedTill.isAfter(installment.getFromDate()) && !accruedTill.isAfter(installment.getDueDate()))) {
                 BigDecimal dueDateFeeIncome = BigDecimal.ZERO;
                 BigDecimal dueDatePenaltyIncome = BigDecimal.ZERO;
