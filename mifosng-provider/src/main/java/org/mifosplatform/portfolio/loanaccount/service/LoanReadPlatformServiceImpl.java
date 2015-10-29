@@ -1712,8 +1712,8 @@ public class LoanReadPlatformServiceImpl implements LoanReadPlatformService {
     @Override
     public Collection<Long> fetchArrearLoans() {
         StringBuilder sqlBuilder = new StringBuilder();
-     //   sqlBuilder.append("SELECT ml.id FROM m_loan ml where ml.id = 90431 ");
-       sqlBuilder.append("SELECT ml.id FROM m_loan ml ");
+       sqlBuilder.append("SELECT ml.id FROM m_loan ml where ml.loan_status_id=300 limit 50000");
+       /*sqlBuilder.append("SELECT ml.id FROM m_loan ml ");
         sqlBuilder.append(" INNER JOIN m_loan_repayment_schedule mr on mr.loan_id = ml.id ");
         sqlBuilder.append(" LEFT JOIN m_loan_disbursement_detail dd on dd.loan_id=ml.id and dd.disbursedon_date is null ");
         sqlBuilder.append(" WHERE ml.loan_status_id = ? ");
@@ -1723,11 +1723,11 @@ public class LoanReadPlatformServiceImpl implements LoanReadPlatformService {
         sqlBuilder.append(" mr.completed_derived is false ");
         sqlBuilder.append(" and mr.duedate < ? )");
         sqlBuilder.append(" or dd.expected_disburse_date < ? ) ");
-        sqlBuilder.append(" group by ml.id");
+        sqlBuilder.append(" group by ml.id");*/
         try {
-            return this.jdbcTemplate.queryForList(sqlBuilder.toString(), Long.class,
-                    new Object[] { LoanStatus.ACTIVE.getValue(), formatter.print(LocalDate.now()), formatter.print(LocalDate.now()) });
-      //      return this.jdbcTemplate.queryForList(sqlBuilder.toString(), Long.class);
+            /*return this.jdbcTemplate.queryForList(sqlBuilder.toString(), Long.class,
+                    new Object[] { LoanStatus.ACTIVE.getValue(), formatter.print(LocalDate.now()), formatter.print(LocalDate.now()) });*/
+           return this.jdbcTemplate.queryForList(sqlBuilder.toString(), Long.class);
         } catch (final EmptyResultDataAccessException e) {
             return null;
         }
