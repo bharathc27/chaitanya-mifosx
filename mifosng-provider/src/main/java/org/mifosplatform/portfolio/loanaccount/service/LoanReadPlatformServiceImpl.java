@@ -1712,7 +1712,7 @@ public class LoanReadPlatformServiceImpl implements LoanReadPlatformService {
     @Override
     public Collection<Long> fetchArrearLoans() {
         StringBuilder sqlBuilder = new StringBuilder();
-       sqlBuilder.append("SELECT ml.id FROM m_loan ml where ml.loan_status_id=300 limit 50000");
+       sqlBuilder.append("SELECT ml.id FROM m_loan ml where ml.loan_status_id=300 limit 50000,50000");
        /*sqlBuilder.append("SELECT ml.id FROM m_loan ml ");
         sqlBuilder.append(" INNER JOIN m_loan_repayment_schedule mr on mr.loan_id = ml.id ");
         sqlBuilder.append(" LEFT JOIN m_loan_disbursement_detail dd on dd.loan_id=ml.id and dd.disbursedon_date is null ");
