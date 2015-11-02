@@ -102,9 +102,8 @@ public class CalendarsApiResource {
         //final Collection<CalendarData> calendarInstance = this.readPlatformService.retriveCalendarInstanceByCalendarId(calendarId,entityTypeId);
         final Collection<LocalDate> recurringDates = this.readPlatformService.generateRecurringDates(calendarData, withHistory, tillDate);
         final Collection<LocalDate> nextTenRecurringDates = this.readPlatformService.generateNextTenRecurringDates(calendarData);
-        final Collection<LocalDate> nextMeetingDatesAfterLastTransactionDate = this.readPlatformService.generateMeetingDatesAfterLastTransactionDate(calendarData, nextTenRecurringDates);
         final LocalDate recentEligibleMeetingDate = null;
-        calendarData = CalendarData.withRecurringDates(calendarData, recurringDates, nextMeetingDatesAfterLastTransactionDate, recentEligibleMeetingDate);
+        calendarData = CalendarData.withRecurringDates(calendarData, recurringDates, nextTenRecurringDates, recentEligibleMeetingDate);
 
         final ApiRequestJsonSerializationSettings settings = this.apiRequestParameterHelper.process(uriInfo.getQueryParameters());
         if (settings.isTemplate()) {

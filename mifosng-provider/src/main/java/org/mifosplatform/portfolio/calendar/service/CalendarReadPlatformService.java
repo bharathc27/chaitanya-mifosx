@@ -38,7 +38,4 @@ public interface CalendarReadPlatformService {
 
     LocalDate generateNextEligibleMeetingDateForCollection(CalendarData calendarData, MeetingData lastMeetingData);
 
-	Collection<LocalDate> generateMeetingDatesAfterLastTransactionDate(CalendarData calendarData, Collection<LocalDate> nextTenRecurringDates);
-
-
 }

@@ -366,6 +366,9 @@ public class Loan extends AbstractPersistable<Long> {
     @Temporal(TemporalType.DATE)
     @Column(name = "accrued_from")
     private Date accruedFrom;
+    
+    @Column(name = "is_job_successed")
+    private Integer isJobSuccessed;
 
     public static Loan newIndividualLoanApplication(final String accountNo, final Client client, final Integer loanType,
             final LoanProduct loanProduct, final Fund fund, final Staff officer, final CodeValue loanPurpose,
@@ -2298,6 +2301,7 @@ public class Loan extends AbstractPersistable<Long> {
         BigDecimal principalDisbursed = command.bigDecimalValueOfParameterNamed(LoanApiConstants.principalDisbursedParameterName);
         if (this.actualDisbursementDate == null) {
             this.actualDisbursementDate = actualDisbursementDate.toDate();
+            this.accruedFrom = actualDisbursementDate.toDate();
         }
         BigDecimal diff = BigDecimal.ZERO;
         Collection<LoanDisbursementDetails> details = fetchUndisbursedDetail();
@@ -4862,7 +4866,13 @@ public class Loan extends AbstractPersistable<Long> {
          * generatorDTO.setRecalculateFrom(recalculateFrom);
          */
         if (this.repaymentScheduleDetail().isInterestRecalculationEnabled()) {
-            regenerateRepaymentScheduleWithInterestRecalculation(generatorDTO, currentUser);
+        	try{
+        		regenerateRepaymentScheduleWithInterestRecalculation(generatorDTO, currentUser);
+        	}catch(Exception e){
+        		this.setIsJobSuccessed(0);
+        		e.printStackTrace();
+        	}
+            
         }
         return processTransactions();
 
@@ -5674,4 +5684,14 @@ public class Loan extends AbstractPersistable<Long> {
         }
         return accruedFrom;
     }
+
+	public Integer getIsJobSuccessed() {
+		return isJobSuccessed;
+	}
+
+	public void setIsJobSuccessed(Integer isJobSuccessed) {
+		this.isJobSuccessed = isJobSuccessed;
+	}
+	
+	
 }
