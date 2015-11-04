@@ -4760,7 +4760,7 @@ public class Loan extends AbstractPersistable<Long> {
         BigDecimal totalAmount = BigDecimal.ZERO;
         for (LoanDisbursementDetails details : loanDisburseDetails) {
             setPrincipalAmount = setPrincipalAmount.add(details.principal());
-            totalAmount = totalAmount.add(setPrincipalAmount);
+            totalAmount = totalAmount.add(details.principal());
         }
 
         if (totalAmount.compareTo(this.approvedPrincipal) == 1) {
