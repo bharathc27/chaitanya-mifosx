@@ -1711,8 +1711,13 @@ public class LoanReadPlatformServiceImpl implements LoanReadPlatformService {
 
     @Override
     public Collection<Long> fetchArrearLoans() {
+        StringBuilder sql = new StringBuilder();
         StringBuilder sqlBuilder = new StringBuilder();
-       sqlBuilder.append("SELECT ml.id FROM m_loan ml ");
+        Collection<Long> loanIds = null;
+        sql.append("SELECT loan_no from deleteme ");
+        loanIds = this.jdbcTemplate.queryForList(sql.toString(), Long.class);
+        
+        sqlBuilder.append("SELECT ml.id FROM m_loan ml ");
         sqlBuilder.append(" INNER JOIN m_loan_repayment_schedule mr on mr.loan_id = ml.id ");
         sqlBuilder.append(" LEFT JOIN m_loan_disbursement_detail dd on dd.loan_id=ml.id and dd.disbursedon_date is null ");
         sqlBuilder.append(" WHERE ml.loan_status_id = ? ");
@@ -1724,9 +1729,15 @@ public class LoanReadPlatformServiceImpl implements LoanReadPlatformService {
         sqlBuilder.append(" or dd.expected_disburse_date < ? ) ");
         sqlBuilder.append(" group by ml.id");
         try {
-            return this.jdbcTemplate.queryForList(sqlBuilder.toString(), Long.class,
-                    new Object[] { LoanStatus.ACTIVE.getValue(), formatter.print(LocalDate.now()), formatter.print(LocalDate.now()) });
-          // return this.jdbcTemplate.queryForList(sqlBuilder.toString(), Long.class);
+        	if(loanIds != null && loanIds.size() > 0){
+            	return loanIds;
+            }else{
+            	return this.jdbcTemplate.queryForList(sqlBuilder.toString(), Long.class,
+                new Object[] { LoanStatus.ACTIVE.getValue(), formatter.print(LocalDate.now()), formatter.print(LocalDate.now()) });
+            }
+            /*return this.jdbcTemplate.queryForList(sqlBuilder.toString(), Long.class,
+                    new Object[] { LoanStatus.ACTIVE.getValue(), formatter.print(LocalDate.now()), formatter.print(LocalDate.now()) });*/
+            /*return this.jdbcTemplate.queryForList(sqlBuilder.toString(), Long.class);*/
         } catch (final EmptyResultDataAccessException e) {
             return null;
         }
