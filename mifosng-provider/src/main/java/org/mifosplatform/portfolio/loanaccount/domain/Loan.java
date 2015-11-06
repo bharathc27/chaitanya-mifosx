@@ -3246,6 +3246,29 @@ public class Loan extends AbstractPersistable<Long> {
         return possibleNextRepaymentDate;
     }
 
+   /*
+	* get the next repayment date for rescheduling at the time of disbursement
+	*/
+	public LocalDate getNextPossibleRepaymentDateForRescheduling() {
+		Set<LoanDisbursementDetails> loanDisbursementDetails = this.disbursementDetails;
+		LocalDate nextRepaymentDate = new LocalDate();
+		for (LoanDisbursementDetails loanDisbursementDetail : loanDisbursementDetails) {
+			if (loanDisbursementDetail.actualDisbursementDate() == null) {
+				for (final LoanRepaymentScheduleInstallment installment : this.repaymentScheduleInstallments) {
+					if (installment.getDueDate().isAfter(
+							loanDisbursementDetail
+									.expectedDisbursementDateAsLocalDate())
+							&& installment.isNotFullyPaidOff()) {
+						nextRepaymentDate = installment.getDueDate();
+						break;
+					}
+				}
+				break;
+			}
+		}
+		return nextRepaymentDate;
+	}
+        
     public LoanRepaymentScheduleInstallment possibleNextRepaymentInstallment() {
         LoanRepaymentScheduleInstallment loanRepaymentScheduleInstallment = null;
 
