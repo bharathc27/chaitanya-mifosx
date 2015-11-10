@@ -11,6 +11,7 @@ import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -3251,13 +3252,18 @@ public class Loan extends AbstractPersistable<Long> {
 	*/
 	public LocalDate getNextPossibleRepaymentDateForRescheduling() {
 		Set<LoanDisbursementDetails> loanDisbursementDetails = this.disbursementDetails;
+		List<LoanDisbursementDetails> disbursementDetails = new ArrayList<LoanDisbursementDetails>(loanDisbursementDetails);
 		LocalDate nextRepaymentDate = new LocalDate();
-		for (LoanDisbursementDetails loanDisbursementDetail : loanDisbursementDetails) {
+		Collections.sort(disbursementDetails, new Comparator<LoanDisbursementDetails>() {
+			@Override
+			public int compare(LoanDisbursementDetails l1, LoanDisbursementDetails l2) {
+				return l1.expectedDisbursementDate().compareTo(l2.expectedDisbursementDate());
+			}
+		});
+		for (LoanDisbursementDetails loanDisbursementDetail : disbursementDetails) {
 			if (loanDisbursementDetail.actualDisbursementDate() == null) {
 				for (final LoanRepaymentScheduleInstallment installment : this.repaymentScheduleInstallments) {
-					if (installment.getDueDate().isAfter(
-							loanDisbursementDetail
-									.expectedDisbursementDateAsLocalDate())
+					if (installment.getDueDate().isAfter(loanDisbursementDetail.expectedDisbursementDateAsLocalDate())
 							&& installment.isNotFullyPaidOff()) {
 						nextRepaymentDate = installment.getDueDate();
 						break;
