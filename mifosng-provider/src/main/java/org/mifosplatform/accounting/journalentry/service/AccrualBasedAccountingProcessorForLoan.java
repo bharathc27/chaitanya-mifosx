@@ -39,7 +39,7 @@ public class AccrualBasedAccountingProcessorForLoan implements AccountingProcess
         for (final LoanTransactionDTO loanTransactionDTO : loanDTO.getNewLoanTransactions()) {
             final Date transactionDate = loanTransactionDTO.getTransactionDate();
             Boolean isIgnoreAccountClosureCheck = ThreadLocalContextUtil.getIgnoreAccountClosureCheck();
-            if(isIgnoreAccountClosureCheck == null){
+            if(!loanTransactionDTO.getTransactionType().isAccrual() && isIgnoreAccountClosureCheck == null ){
              this.helper.checkForBranchClosures(latestGLClosure, transactionDate);
             }
 
