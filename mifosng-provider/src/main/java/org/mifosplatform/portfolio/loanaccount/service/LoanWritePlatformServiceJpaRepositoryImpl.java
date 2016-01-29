@@ -2812,6 +2812,7 @@ public class LoanWritePlatformServiceJpaRepositoryImpl implements LoanWritePlatf
             changedTransactionDetail = loan.updateDisbursementDateAndAmountForTranche(loanDisbursementDetails, command,
                     existingTransactionIds, existingReversedTransactionIds, changes, scheduleGeneratorDTO, currentUser);
         } else {
+			existingTransactionIds.addAll(loan.findExistingTransactionIds());
             Collection<LoanDisbursementDetails> loanDisburseDetails = loan.getDisbursementDetails();
             BigDecimal setAmount = BigDecimal.ZERO;
             for (LoanDisbursementDetails details : loanDisburseDetails) {
@@ -2981,6 +2982,14 @@ public class LoanWritePlatformServiceJpaRepositoryImpl implements LoanWritePlatf
 
         ChangedTransactionDetail changedTransactionDetail = loan.recalculateScheduleFromLastTransaction(generatorDTO,
                 existingTransactionIds, existingReversedTransactionIds, currentUser);
+       if (loan.repaymentScheduleDetail().isInterestRecalculationEnabled()) {
+       	 ScheduleGeneratorDTO scheduleGeneratorDTO = loanAccountDomainService.buildScheduleGeneratorDTO(loan);
+            loan.setHelpers(null, this.loanSummaryWrapper, this.transactionProcessingStrategy);
+           loan.regenerateRepaymentSchedule(scheduleGeneratorDTO, currentUser);
+            this.loanScheduleHistoryWritePlatformService.createAndSaveLoanScheduleArchive(loan.fetchRepaymentScheduleInstallments(),
+                    loan, null);
+            loan.regenerateRepaymentScheduleWithInterestRecalculation(scheduleGeneratorDTO, currentUser);
+        }
 
         saveLoanWithDataIntegrityViolationChecks(loan);
 
