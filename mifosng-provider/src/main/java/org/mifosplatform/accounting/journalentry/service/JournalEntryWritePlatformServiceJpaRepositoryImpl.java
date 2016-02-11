@@ -121,7 +121,8 @@ public class JournalEntryWritePlatformServiceJpaRepositoryImpl implements Journa
             final Long officeId = command.longValueOfParameterNamed(JournalEntryJsonInputParams.OFFICE_ID.getValue());
             final Office office = this.officeRepository.findOne(officeId);
             if (office == null) { throw new OfficeNotFoundException(officeId); }
-
+            final GLClosure latestGLClosure = this.helper.getLatestClosureByBranch(officeId);
+            this.helper.checkForBranchClosures(latestGLClosure,  command.DateValueOfParameterNamed(JournalEntryJsonInputParams.TRANSACTION_DATE.getValue()));
             final Long accountRuleId = command.longValueOfParameterNamed(JournalEntryJsonInputParams.ACCOUNTING_RULE.getValue());
             final String currencyCode = command.stringValueOfParameterNamed(JournalEntryJsonInputParams.CURRENCY_CODE.getValue());
 
@@ -294,6 +295,8 @@ public class JournalEntryWritePlatformServiceJpaRepositoryImpl implements Journa
 
     public String revertJournalEntry(final List<JournalEntry> journalEntries, String reversalComment) {
         final Long officeId = journalEntries.get(0).getOffice().getId();
+        final GLClosure latestGLClosure = this.helper.getLatestClosureByBranch(officeId);
+        this.helper.checkForBranchClosures(latestGLClosure, journalEntries.get(0).getTransactionDate());
         final String reversalTransactionId = generateTransactionId(officeId);
         final boolean manualEntry = true;
 
