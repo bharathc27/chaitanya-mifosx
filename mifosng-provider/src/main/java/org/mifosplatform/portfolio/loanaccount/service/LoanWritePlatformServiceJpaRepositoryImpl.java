@@ -2790,6 +2790,8 @@ public class LoanWritePlatformServiceJpaRepositoryImpl implements LoanWritePlatf
         final ApplicationCurrency applicationCurrency = this.applicationCurrencyRepository.findOneWithNotFoundDetection(currency);
         final List<Long> existingTransactionIds = new ArrayList<>();
         final List<Long> existingReversedTransactionIds = new ArrayList<>();
+        existingTransactionIds.addAll(loan.findExistingTransactionIds());
+        existingReversedTransactionIds.addAll(loan.findExistingReversedTransactionIds());
         final Map<String, Object> changes = new LinkedHashMap<>();
         CalendarInstance restCalendarInstance = null;
         CalendarInstance compoundingCalendarInstance = null;
@@ -2814,7 +2816,7 @@ public class LoanWritePlatformServiceJpaRepositoryImpl implements LoanWritePlatf
         if (command.entityId() != null) {
 
             changedTransactionDetail = loan.updateDisbursementDateAndAmountForTranche(loanDisbursementDetails, command,
-                    existingTransactionIds, existingReversedTransactionIds, changes, scheduleGeneratorDTO, currentUser);
+                    changes, scheduleGeneratorDTO, currentUser);
         } else {
 			existingTransactionIds.addAll(loan.findExistingTransactionIds());
             Collection<LoanDisbursementDetails> loanDisburseDetails = loan.getDisbursementDetails();
