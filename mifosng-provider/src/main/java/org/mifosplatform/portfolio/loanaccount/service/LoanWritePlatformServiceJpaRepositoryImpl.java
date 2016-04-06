@@ -141,6 +141,7 @@ import org.mifosplatform.portfolio.loanaccount.loanschedule.domain.DefaultSchedu
 import org.mifosplatform.portfolio.loanaccount.loanschedule.domain.LoanScheduleGeneratorFactory;
 import org.mifosplatform.portfolio.loanaccount.loanschedule.domain.LoanScheduleModel;
 import org.mifosplatform.portfolio.loanaccount.loanschedule.domain.LoanScheduleModelPeriod;
+import org.mifosplatform.portfolio.loanaccount.loanschedule.domain.RecalculatedSchedule;
 import org.mifosplatform.portfolio.loanaccount.loanschedule.domain.ScheduledDateGenerator;
 import org.mifosplatform.portfolio.loanaccount.loanschedule.service.LoanScheduleHistoryWritePlatformService;
 import org.mifosplatform.portfolio.loanaccount.rescheduleloan.domain.LoanRescheduleRequest;
@@ -345,8 +346,9 @@ public class LoanWritePlatformServiceJpaRepositoryImpl implements LoanWritePlatf
 
         // Recalculate first repayment date based in actual disbursement date.
         final LocalDate actualDisbursementDate = command.localDateValueOfParameterNamed("actualDisbursementDate");
+        boolean recalculateSchedule;
         if(loan.getActualDisbursalDate() == null){
-        	loan.setInterestChargedFromDate(actualDisbursementDate.toDate());
+        	loan.setInterestChargedFromDate(actualDisbursementDate.toDate());	
         }
         final LocalDate calculatedRepaymentsStartingFromDate = this.loanAccountDomainService.getCalculatedRepaymentsStartingFromDate(
                 actualDisbursementDate, loan, calendarInstance);
@@ -363,7 +365,7 @@ public class LoanWritePlatformServiceJpaRepositoryImpl implements LoanWritePlatf
         ChangedTransactionDetail changedTransactionDetail = null;
         if (canDisburse) {
             Money disburseAmount = loan.adjustDisburseAmount(command, actualDisbursementDate);
-            boolean recalculateSchedule = amountBeforeAdjust.isNotEqualTo(loan.getPrincpal());
+            recalculateSchedule = amountBeforeAdjust.isNotEqualTo(loan.getPrincpal());
             final String txnExternalId = command.stringValueOfParameterNamedAllowingNull("externalId");
             if (isAccountTransfer) {
                 disburseLoanToSavings(loan, command, disburseAmount, paymentDetail);
@@ -394,7 +396,9 @@ public class LoanWritePlatformServiceJpaRepositoryImpl implements LoanWritePlatf
             ScheduleGeneratorDTO scheduleGeneratorDTO = new ScheduleGeneratorDTO(loanScheduleFactory, applicationCurrency,
                     calculatedRepaymentsStartingFromDate, holidayDetailDTO, restCalendarInstance, compoundingCalendarInstance,
                     recalculateFrom, overdurPenaltyWaitPeriod);
-
+            if(!(loan.getInterestChargedFromDate() == actualDisbursementDate)){
+            	recalculateSchedule = true;
+            }
             regenerateScheduleOnDisbursement(command, loan, recalculateSchedule, scheduleGeneratorDTO, updateOriginalScheduleIfRepaymentDateChanged);
             if (loan.repaymentScheduleDetail().isInterestRecalculationEnabled()) {
                 this.loanScheduleHistoryWritePlatformService.createAndSaveLoanScheduleArchive(loan.fetchRepaymentScheduleInstallments(),
