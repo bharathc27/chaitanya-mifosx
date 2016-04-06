@@ -4761,7 +4761,7 @@ public class Loan extends AbstractPersistable<Long> {
     }
 
     public ChangedTransactionDetail updateDisbursementDateAndAmountForTranche(final LoanDisbursementDetails disbursementDetails,
-            final JsonCommand command, final List<Long> existingTransactionIds, final List<Long> existingReversedTransactionIds,
+            final JsonCommand command,
             final Map<String, Object> actualChanges, final ScheduleGeneratorDTO scheduleGeneratorDTO, final AppUser currentUser) {
         final Locale locale = command.extractLocale();
         validateAccountStatus(LoanEvent.LOAN_EDIT_MULTI_DISBURSE_DATE);
@@ -4776,9 +4776,6 @@ public class Loan extends AbstractPersistable<Long> {
                 command.stringValueOfParameterNamed(LoanApiConstants.disbursementIdParameterName));
         actualChanges.put(LoanApiConstants.disbursementPrincipalParameterName,
                 command.bigDecimalValueOfParameterNamed(LoanApiConstants.disbursementPrincipalParameterName, locale));
-        existingTransactionIds.addAll(findExistingTransactionIds());
-        existingReversedTransactionIds.addAll(findExistingReversedTransactionIds());
-
         if(expectedDisbursementDate.isBefore(getLastUserTransactionDate())){
            	final String errorMsg = "Loan can't be disbursed before last transaction date ";
            	throw new LoanDisbursalDateException(errorMsg, "loan.disbursement.cannot.be.made.before.last.transaction.date", expectedDisbursementDate);
