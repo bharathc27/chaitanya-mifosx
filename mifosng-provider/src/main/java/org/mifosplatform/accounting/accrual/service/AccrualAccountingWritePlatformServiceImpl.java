@@ -8,6 +8,8 @@ package org.mifosplatform.accounting.accrual.service;
 import static org.mifosplatform.accounting.accrual.api.AccrualAccountingConstants.PERIODIC_ACCRUAL_ACCOUNTING_EXECUTION_ERROR_CODE;
 import static org.mifosplatform.accounting.accrual.api.AccrualAccountingConstants.PERIODIC_ACCRUAL_ACCOUNTING_RESOURCE_NAME;
 import static org.mifosplatform.accounting.accrual.api.AccrualAccountingConstants.accrueTillParamName;
+import static org.mifosplatform.accounting.accrual.api.AccrualAccountingConstants.fromLoanId;
+import static org.mifosplatform.accounting.accrual.api.AccrualAccountingConstants.toLoanId;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -20,12 +22,16 @@ import org.mifosplatform.infrastructure.core.data.CommandProcessingResult;
 import org.mifosplatform.infrastructure.core.data.DataValidatorBuilder;
 import org.mifosplatform.infrastructure.core.exception.PlatformApiDataValidationException;
 import org.mifosplatform.portfolio.loanaccount.service.LoanAccrualPlatformService;
+import org.mifosplatform.portfolio.loanaccount.service.LoanAccrualPlatformServiceImpl;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
 public class AccrualAccountingWritePlatformServiceImpl implements AccrualAccountingWritePlatformService {
 
+	private final static Logger logger = LoggerFactory.getLogger(AccrualAccountingWritePlatformServiceImpl.class);
     private final LoanAccrualPlatformService loanAccrualPlatformService;
     private final AccrualAccountingDataValidator accountingDataValidator;
 
@@ -40,7 +46,10 @@ public class AccrualAccountingWritePlatformServiceImpl implements AccrualAccount
     public CommandProcessingResult executeLoansPeriodicAccrual(JsonCommand command) {
         this.accountingDataValidator.validateLoanPeriodicAccrualData(command.json());
         LocalDate tilldate = command.localDateValueOfParameterNamed(accrueTillParamName);
-        String errorlog = this.loanAccrualPlatformService.addPeriodicAccruals(tilldate);
+     //   String errorlog = this.loanAccrualPlatformService.addPeriodicAccruals(tilldate);
+        Integer fromLoanIdInteger = command.integerValueOfParameterNamed(fromLoanId);
+        Integer toLoanIdInteger = command.integerValueOfParameterNamed(toLoanId);
+        String errorlog = this.loanAccrualPlatformService.addPeriodicAccruals(tilldate, fromLoanIdInteger, toLoanIdInteger);
         if (errorlog.length() > 0) {
             final List<ApiParameterError> dataValidationErrors = new ArrayList<>();
             final DataValidatorBuilder baseDataValidator = new DataValidatorBuilder(dataValidationErrors)

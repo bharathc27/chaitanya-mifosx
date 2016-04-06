@@ -6,14 +6,15 @@
 package org.mifosplatform.portfolio.loanaccount.service;
 
 import java.util.Collection;
-
+import org.mifosplatform.infrastructure.core.service.Page;
 import org.joda.time.LocalDate;
 import org.mifosplatform.infrastructure.jobs.exception.JobExecutionException;
 import org.mifosplatform.portfolio.loanaccount.data.LoanScheduleAccrualData;
 
 public interface LoanAccrualPlatformService {
 
-    String addPeriodicAccruals(LocalDate tilldate);
+  /*  String addPeriodicAccruals(LocalDate tilldate);*/
+    String addPeriodicAccruals(LocalDate tilldate, Integer fromLoanId, Integer toLoanId);
 
     String addPeriodicAccruals(LocalDate tilldate, Collection<LoanScheduleAccrualData> loanScheduleAccrualDatas);
 

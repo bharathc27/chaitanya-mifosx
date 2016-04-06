@@ -92,7 +92,7 @@ public interface LoanReadPlatformService {
 
     LoanTransactionData retrieveLoanWriteoffTemplate(Long loanId);
 
-    Collection<LoanScheduleAccrualData> retrivePeriodicAccrualData(LocalDate tillDate);
+    Page<LoanScheduleAccrualData> retrivePeriodicAccrualData(LocalDate tillDate, int offset, int maxPageSize, Integer fromLoanId, Integer toLoanId);
 
     Collection<Long> fetchArrearLoans();
 
