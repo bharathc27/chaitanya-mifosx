@@ -29,6 +29,8 @@ import org.mifosplatform.portfolio.loanaccount.data.LoanTransactionEnumData;
 import org.mifosplatform.portfolio.loanaccount.domain.LoanTransactionType;
 import org.mifosplatform.portfolio.loanaccount.loanschedule.data.LoanSchedulePeriodData;
 import org.mifosplatform.portfolio.loanproduct.service.LoanEnumerations;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.orm.jpa.JpaTransactionManager;
@@ -40,7 +42,8 @@ import org.springframework.transaction.support.DefaultTransactionDefinition;
 @Service
 public class LoanAccrualWritePlatformServiceImpl implements LoanAccrualWritePlatformService {
 
-    private final LoanReadPlatformService loanReadPlatformService;
+	private final static Logger logger = LoggerFactory.getLogger(LoanAccrualWritePlatformServiceImpl.class);
+	private final LoanReadPlatformService loanReadPlatformService;
     private final LoanChargeReadPlatformService loanChargeReadPlatformService;
     private final JdbcTemplate jdbcTemplate;
     private final DataSource dataSource;
@@ -246,15 +249,18 @@ public class LoanAccrualWritePlatformServiceImpl implements LoanAccrualWritePlat
             BigDecimal totalAccPenalty, final LocalDate accruedTill) throws Exception {
         TransactionStatus transactionStatus = this.transactionManager.getTransaction(new DefaultTransactionDefinition());
         try {
+        	logger.info("For LoanId[" + scheduleAccrualData.getLoanId() +"] before updating the m_loan_transaction table");
             String transactionSql = "INSERT INTO m_loan_transaction  (loan_id,office_id,is_reversed,transaction_type_enum,transaction_date,amount,interest_portion_derived,"
                     + "fee_charges_portion_derived,penalty_charges_portion_derived, submitted_on_date) VALUES (?, ?, 0, ?, ?, ?, ?, ?, ?, ?)";
             this.jdbcTemplate.update(transactionSql, scheduleAccrualData.getLoanId(), scheduleAccrualData.getOfficeId(),
                     LoanTransactionType.ACCRUAL.getValue(), accruedTill.toDate(), amount, interestportion, feeportion, penaltyportion,
                     DateUtils.getDateOfTenant());
+            logger.info("For LoanId[" + scheduleAccrualData.getLoanId() +"] after updating the m_loan_transaction table");
             @SuppressWarnings("deprecation")
             final Long transactonId = this.jdbcTemplate.queryForLong("SELECT LAST_INSERT_ID()");
 
             Map<LoanChargeData, BigDecimal> applicableCharges = scheduleAccrualData.getApplicableCharges();
+            logger.info("For LoanId[" + scheduleAccrualData.getLoanId() +"] before updating the m_loan_charge_paid_by table");
             String chargespaidSql = "INSERT INTO m_loan_charge_paid_by (loan_transaction_id, loan_charge_id, amount,installment_number) VALUES (?,?,?,?)";
             for (Map.Entry<LoanChargeData, BigDecimal> entry : applicableCharges.entrySet()) {
                 LoanChargeData chargeData = entry.getKey();
@@ -262,20 +268,23 @@ public class LoanAccrualWritePlatformServiceImpl implements LoanAccrualWritePlat
                         scheduleAccrualData.getInstallmentNumber());
             }
 
+            logger.info("For LoanId[" + scheduleAccrualData.getLoanId() +"] after updating the m_loan_charge_paid_by table");
             Map<String, Object> transactionMap = toMapData(transactonId, amount, interestportion, feeportion, penaltyportion,
                     scheduleAccrualData, accruedTill);
 
+            logger.info("For LoanId[" + scheduleAccrualData.getLoanId() +"] before updating the m_loan_repayment_schedule table");
             String repaymetUpdatesql = "UPDATE m_loan_repayment_schedule SET accrual_interest_derived=?, accrual_fee_charges_derived=?, "
                     + "accrual_penalty_charges_derived=? WHERE  id=?";
             this.jdbcTemplate.update(repaymetUpdatesql, totalAccInterest, totalAccFee, totalAccPenalty,
                     scheduleAccrualData.getRepaymentScheduleId());
-
+            logger.info("For LoanId[" + scheduleAccrualData.getLoanId() +"] after updating the m_loan_repayment_schedule table");
             String updateLoan = "UPDATE m_loan  SET accrued_till=?  WHERE  id=?";
             this.jdbcTemplate.update(updateLoan, accruedTill.toDate(), scheduleAccrualData.getLoanId());
+            logger.info("For LoanId[" + scheduleAccrualData.getLoanId() +"] after updating the m_loan table");
             final Map<String, Object> accountingBridgeData = deriveAccountingBridgeData(scheduleAccrualData, transactionMap);
-            System.out.println("loan Id processed"+scheduleAccrualData.getLoanId());
             this.journalEntryWritePlatformService.createJournalEntriesForLoan(accountingBridgeData);
         } catch (Exception e) {
+        	e.printStackTrace();
             this.transactionManager.rollback(transactionStatus);
             throw e;
         }

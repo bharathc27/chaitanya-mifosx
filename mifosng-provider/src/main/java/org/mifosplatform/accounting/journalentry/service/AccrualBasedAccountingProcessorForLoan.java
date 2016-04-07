@@ -87,60 +87,64 @@ public class AccrualBasedAccountingProcessorForLoan implements AccountingProcess
                 createJournalEntriesForRefundForActiveLoan(loanDTO, loanTransactionDTO, office);
             }*/
     	try{
-    	    final GLClosure latestGLClosure = this.helper.getLatestClosureByBranch(loanDTO.getOfficeId());
-    	    final Office office = this.helper.getOfficeById(loanDTO.getOfficeId());
-    	    for (final LoanTransactionDTO loanTransactionDTO : loanDTO.getNewLoanTransactions()) {
-    	        final Date transactionDate = loanTransactionDTO.getTransactionDate();
-    	        this.helper.checkForBranchClosures(latestGLClosure, transactionDate);
+    		final GLClosure latestGLClosure = this.helper.getLatestClosureByBranch(loanDTO.getOfficeId());
+            final Office office = this.helper.getOfficeById(loanDTO.getOfficeId());
+            for (final LoanTransactionDTO loanTransactionDTO : loanDTO.getNewLoanTransactions()) {
+                final Date transactionDate = loanTransactionDTO.getTransactionDate();
+                Boolean isIgnoreAccountClosureCheck = ThreadLocalContextUtil.getIgnoreAccountClosureCheck();
+                if(!loanTransactionDTO.getTransactionType().isAccrual() && isIgnoreAccountClosureCheck == null ){
+                 this.helper.checkForBranchClosures(latestGLClosure, transactionDate);
+                }
 
-    	        /** Handle Disbursements **/
-    	        if (loanTransactionDTO.getTransactionType().isDisbursement()) {
-    	            createJournalEntriesForDisbursements(loanDTO, loanTransactionDTO, office);
-    	        }
-    	 
-    	        /*** Handle Accruals ***/
-    	        if (loanTransactionDTO.getTransactionType().isAccrual()) {
-    	            createJournalEntriesForAccruals(loanDTO, loanTransactionDTO, office);
-    	        }
-    	 	
-    	        /***
-    	         * Handle repayments, repayments at disbursement and reversal of
-    	         * Repayments and Repayments at disbursement
-    	         ***/
-    	        else if (loanTransactionDTO.getTransactionType().isRepayment()
-    	                || loanTransactionDTO.getTransactionType().isRepaymentAtDisbursement()
-    	                || loanTransactionDTO.getTransactionType().isChargePayment()) {
-    	            createJournalEntriesForRepaymentsAndWriteOffs(loanDTO, loanTransactionDTO, office, false, loanTransactionDTO
-    	                    .getTransactionType().isRepaymentAtDisbursement());
-    	        }
-    	 	
-    	        /** Logic for handling recovery payments **/
-    	        else if (loanTransactionDTO.getTransactionType().isRecoveryRepayment()) {
-    	            createJournalEntriesForRecoveryRepayments(loanDTO, loanTransactionDTO, office);
-    	        }
-    	 	
-    	        /** Logic for Refunds of Overpayments **/
-    	        else if (loanTransactionDTO.getTransactionType().isRefund()) {
-    	            createJournalEntriesForRefund(loanDTO, loanTransactionDTO, office);
-    	        }
-    	 	
-    	        /** Handle Write Offs, waivers and their reversals **/
-    	        else if ((loanTransactionDTO.getTransactionType().isWriteOff() || loanTransactionDTO.getTransactionType().isWaiveInterest() || loanTransactionDTO
-    	                .getTransactionType().isWaiveCharges())) {
-    	            createJournalEntriesForRepaymentsAndWriteOffs(loanDTO, loanTransactionDTO, office, true, false);
-    	        }
-    	        
-    	        /** Logic for Refunds of Active Loans **/
-    	        else if (loanTransactionDTO.getTransactionType().isRefundForActiveLoans()) {
-    	            createJournalEntriesForRefundForActiveLoan(loanDTO, loanTransactionDTO, office);
-    	        }
-    	    }
-    	    	} catch (final DataIntegrityViolationException dve) {
-    	      	   final Throwable realCause = dve.getMostSpecificCause();
-    	    	   throw new PlatformDataIntegrityException("error.msg.loan.journalentry.create",
-    	      			   "Unable to Create Journal Entries for LoanId " + loanDTO.getLoanId(), "LoanID",
-    	 		   loanDTO.getLoanId());
-        }
+                /** Handle Disbursements **/
+                if (loanTransactionDTO.getTransactionType().isDisbursement()) {
+                    createJournalEntriesForDisbursements(loanDTO, loanTransactionDTO, office);
+                }
+
+                /*** Handle Accruals ***/
+                if (loanTransactionDTO.getTransactionType().isAccrual()) {
+                    createJournalEntriesForAccruals(loanDTO, loanTransactionDTO, office);
+                }
+
+                /***
+                 * Handle repayments, repayments at disbursement and reversal of
+                 * Repayments and Repayments at disbursement
+                 ***/
+                else if (loanTransactionDTO.getTransactionType().isRepayment()
+                        || loanTransactionDTO.getTransactionType().isRepaymentAtDisbursement()
+                        || loanTransactionDTO.getTransactionType().isChargePayment()) {
+                    createJournalEntriesForRepaymentsAndWriteOffs(loanDTO, loanTransactionDTO, office, false, loanTransactionDTO
+                            .getTransactionType().isRepaymentAtDisbursement());
+                }
+
+                /** Logic for handling recovery payments **/
+                else if (loanTransactionDTO.getTransactionType().isRecoveryRepayment()) {
+                    createJournalEntriesForRecoveryRepayments(loanDTO, loanTransactionDTO, office);
+                }
+
+                /** Logic for Refunds of Overpayments **/
+                else if (loanTransactionDTO.getTransactionType().isRefund()) {
+                    createJournalEntriesForRefund(loanDTO, loanTransactionDTO, office);
+                }
+
+                /** Handle Write Offs, waivers and their reversals **/
+                else if ((loanTransactionDTO.getTransactionType().isWriteOff() || loanTransactionDTO.getTransactionType().isWaiveInterest() || loanTransactionDTO
+                        .getTransactionType().isWaiveCharges())) {
+                    createJournalEntriesForRepaymentsAndWriteOffs(loanDTO, loanTransactionDTO, office, true, false);
+                }
+                
+                /** Logic for Refunds of Active Loans **/
+                else if (loanTransactionDTO.getTransactionType().isRefundForActiveLoans()) {
+                    createJournalEntriesForRefundForActiveLoan(loanDTO, loanTransactionDTO, office);
+                }
+            }
+    	} catch (final DataIntegrityViolationException dve) {
+      	   final Throwable realCause = dve.getMostSpecificCause();
+    	   throw new PlatformDataIntegrityException("error.msg.loan.journalentry.create",
+      			   "Unable to Create Journal Entries for LoanId " + loanDTO.getLoanId(), "LoanID",
+ 		   loanDTO.getLoanId());
+    	}
+        
     }
 
     /**

@@ -1565,8 +1565,8 @@ public class LoanReadPlatformServiceImpl implements LoanReadPlatformService {
         	         }
         
         sqlBuilder.append(" order by loan.id,ls.duedate ");        
-        sqlBuilder.append(" limit ").append(maxPageSize);        
-        sqlBuilder.append(" offset ").append(offset);
+       // sqlBuilder.append(" limit ").append(maxPageSize);        
+       // sqlBuilder.append(" offset ").append(offset);
                 
             
         ArrayList<Object> arraylist = new ArrayList<Object>();

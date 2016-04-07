@@ -57,6 +57,7 @@ public class LoanAccrualPlatformServiceImpl implements LoanAccrualPlatformServic
             try {
                 this.loanAccrualWritePlatformService.addAccrualAccounting(mapEntry.getKey(), mapEntry.getValue());
             } catch (Exception e) {
+            	e.printStackTrace();
                 Throwable realCause = e;
                 if (e.getCause() != null) {
                     realCause = e.getCause();
@@ -91,27 +92,28 @@ public class LoanAccrualPlatformServiceImpl implements LoanAccrualPlatformServic
          int totalFilteredRecords = loanScheduleAccrualDatas.getTotalFilteredRecords();
          logger.info("Post retrivePeriodicAccrualData entry for " + totalFilteredRecords + " Entries : In Progress...");
         exceptionReasons.append(addPeriodicAccruals(tilldate, loanScheduleAccrualDatas.getPageItems()));
-        offsetCounter = maxPageSize;
-         int processedRecords = maxPageSize;
-         while (totalFilteredRecords > processedRecords) {    
+       /*offsetCounter = maxPageSize;
+       int processedRecords = maxPageSize;
+        while (totalFilteredRecords > processedRecords) {    
         	 logger.info("No of Records Processed[" + processedRecords + "]");
          	loanScheduleAccrualDatas = this.loanReadPlatformService.retrivePeriodicAccrualData(tilldate, offsetCounter, maxPageSize, fromLoanId, toLoanId);
          	exceptionReasons.append(addPeriodicAccruals(tilldate, loanScheduleAccrualDatas.getPageItems()));
          	offsetCounter += maxPageSize;
              processedRecords += maxPageSize;
-         }
+         } */
+        logger.info("ExceptionStrring[" + exceptionReasons.toString() + "]");
        return exceptionReasons.toString();
     
     }
 
     @Override
     public String addPeriodicAccruals(final LocalDate tilldate, Collection<LoanScheduleAccrualData> loanScheduleAccrualDatas) {
-    	System.out.println("loan collection size:"+loanScheduleAccrualDatas.size());
+    	
         StringBuilder sb = new StringBuilder();
         Map<Long, Collection<LoanScheduleAccrualData>> loanDataMap = new HashMap<>();
         for (final LoanScheduleAccrualData accrualData : loanScheduleAccrualDatas) {
             if (loanDataMap.containsKey(accrualData.getLoanId())) {
-            	System.out.println("Loan ID sent for processing :"+accrualData.getLoanId());
+            	
                 loanDataMap.get(accrualData.getLoanId()).add(accrualData);
             } else {
                 Collection<LoanScheduleAccrualData> accrualDatas = new ArrayList<>();
@@ -122,10 +124,9 @@ public class LoanAccrualPlatformServiceImpl implements LoanAccrualPlatformServic
         int y=0;
         logger.info("No of Loans Getting processed in this cycle[" + loanDataMap.size() + "]");
         for (Map.Entry<Long, Collection<LoanScheduleAccrualData>> mapEntry : loanDataMap.entrySet()) {
-        	System.out.println("increment value:"+y);
+        	logger.info("increment value["+y + "], LoanId[" + mapEntry.getKey() + "]");
         	y++;
-            try {
-            	System.out.println("loan Id:"+mapEntry.getKey());
+            try {            	
                 this.loanAccrualWritePlatformService.addPeriodicAccruals(tilldate, mapEntry.getKey(), mapEntry.getValue());
                 // System.out.println("LOAN ID PROCCESSED AND ADDED"+mapEntry.getKey());
             } catch (Exception e) {
